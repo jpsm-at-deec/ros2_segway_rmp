@@ -2,6 +2,8 @@
 #define _segway_rmp_SegwayStatusStamped_h
 
 #include "SegwayStatus.h"
+#include "std_msgs/msg/header.hpp"
+
 
 namespace segway_rmp {
 
@@ -9,10 +11,11 @@ namespace segway_rmp {
         
         public:
             segway_rmp::SegwayStatus segway;
-            
+            std_msgs::msg::Header header;
 
         SegwayStatusStamped(): 
-            segway() {
+            segway(),
+            header() {
         }
     };
 };

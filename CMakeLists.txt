@@ -16,10 +16,37 @@ find_package(std_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
 # find_package(Boost REQUIRED)
 find_package(Boost COMPONENTS system thread REQUIRED)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
+
+
+
+set(INCLUDE_DIRS ${ament_cmake_INCLUDE_DIRS} ${nav_msgs_INCLUDE_DIRS}
+  ${rclcpp_INCLUDE_DIRS} ${std_msgs_INCLUDE_DIRS} ${system_INCLUDE_DIRS}
+  ${REQUIRED_INCLUDE_DIRS} ${serial_INCLUDE_DIRS} ${libsegwayrmp_INCLUDE_DIRS}
+  ${tf2_INCLUDE_DIRS} ${tf2_ros_INCLUDE_DIRS} ${thread_INCLUDE_DIRS} ${geometry_msgs_INCLUDE_DIRS}
+  ${rosidl_default_generators_INCLUDE_DIRS})
+include_directories(${INCLUDE_DIRS})
+set(LIBRARY_DIRS ${ament_cmake_LIBRARIES} ${nav_msgs_LIBRARIES}
+  ${rclcpp_LIBRARIES} ${std_msgs_LIBRARIES} ${system_LIBRARIES}
+  ${REQUIRED_LIBRARIES} ${serial_LIBRARIES} ${libsegwayrmp_LIBRARIES}
+  ${tf2_LIBRARIES} ${tf2_ros_LIBRARIES} ${thread_LIBRARIES} ${geometry_msgs_LIBRARIES}
+  ${rosidl_default_generators_LIBRARIES})
+
+set(LIBS ${ament_cmake_LIBRARIES} ${nav_msgs_LIBRARIES} ${rclcpp_LIBRARIES}
+  ${std_msgs_LIBRARIES} ${system_LIBRARIES} ${REQUIRED_LIBRARIES}
+  ${serial_LIBRARIES} ${libsegwayrmp_LIBRARIES} ${tf2_LIBRARIES} ${tf2_ros_LIBRARIES}
+  ${thread_LIBRARIES} ${geometry_msgs_LIBRARIES}
+  ${rosidl_default_generators_LIBRARIES})
+rosidl_generate_interfaces(${PROJECT_NAME} #"msg/msg" "msg/FILES"
+  "msg/SegwayStatus.msg"
+  "msg/SegwayStatusStamped.msg"
+  DEPENDENCIES nav_msgs std_msgs geometry_msgs #builtin_interfaces
+)
 
 add_executable(ros2_segway_rmp_node src/ros2_segway_rmp_node.cpp)
 target_include_directories(ros2_segway_rmp_node PUBLIC

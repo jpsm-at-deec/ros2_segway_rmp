@@ -9,7 +9,10 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "segwayrmp/segwayrmp.h"
+//#include "ros2_segway_rmp/msg/segway_status.hpp"
+//#include "ros2_segway_rmp/msg/segway_status_stamped.hpp"
 #include "SegwayStatusStamped.h"
+#include "std_msgs/msg/header.hpp"
 
 
 class SegwayRMPNode;
@@ -84,7 +87,7 @@ class SegwayRMPNode : public rclcpp::Node{
           return;
       
       rclcpp::Time current_time = rclcpp::Clock(RCL_ROS_TIME).now();
-      //this->sss_msg.header.stamp = current_time;
+      this->sss_msg.header.stamp = current_time;
     }
     /*--------------------------------------*/
 
