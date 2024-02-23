@@ -186,7 +186,7 @@ class SegwayRMPNode : public rclcpp::Node{
       std::chrono::duration<double> num_minutes(1.0/20.0);
       //auto thisotherthing = n->create_wall_timer(std::chrono::milliseconds(5), std::bind(&SegwayRMPNode::keepAliveCallback, this));
 
-      auto thisotherthing = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::keepAliveCallback, this));
+      this->keep_alive_timer = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::keepAliveCallback, this));
       //this->keep_alive_timer = 
     }
     /*--------------------------------------*/
