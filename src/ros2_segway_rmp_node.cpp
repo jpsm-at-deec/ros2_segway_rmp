@@ -31,11 +31,11 @@ void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
 //segway_rmp::SegwayStatusStamped
 template<>
-struct rclcpp::TypeAdapter<std::string, std_msgs::msg::String>
+struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>
 {
   using is_specialized = std::true_type;
-  using custom_type = std::string;
-  using ros_message_type = std_msgs::msg::String;
+  using custom_type = segway_rmp::SegwayStatusStamped;
+  using ros_message_type = std_msgs::msg::Header;
 
   static
   void
@@ -43,7 +43,8 @@ struct rclcpp::TypeAdapter<std::string, std_msgs::msg::String>
     const custom_type & source,
     ros_message_type & destination)
   {
-    destination.data = source;
+    //destination.data = source.header;
+    destination = source.header;
   }
 
   static
@@ -52,11 +53,12 @@ struct rclcpp::TypeAdapter<std::string, std_msgs::msg::String>
     const ros_message_type & source,
     custom_type & destination)
   {
-    destination = source.data;
+    destination.header = source; //.data
   }
 };
 
-using SegwayAdaptedType = rclcpp::TypeAdapter<std::string, std_msgs::msg::String>;
+//using SegwayAdaptedType = rclcpp::TypeAdapter<std::string, std_msgs::msg::String>;
+using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
 
 //class MinimalPublisher : public rclcpp::Node
 //{
@@ -242,8 +244,9 @@ class SegwayRMPNode : public rclcpp::Node{
       this->sss_msg.segway.powerbase_battery = ss.powerbase_battery_voltage;
       this->sss_msg.segway.motors_enabled = (bool)(ss.motor_status);
 
-      std::string sss = "wally";
-      segway_status_pub->publish(sss);
+      //std::string sss = "wally";
+      //segway_status_pub->publish(sss);
+      segway_status_pub->publish(this->sss_msg);
     }
     /*--------------------------------------*/
 
