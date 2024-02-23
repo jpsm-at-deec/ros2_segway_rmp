@@ -121,6 +121,7 @@ class SegwayRMPNode : public rclcpp::Node{
     geometry_msgs::msg::TransformStamped odom_trans;
     nav_msgs::msg::Odometry odom_msg;
     std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
+    boost::mutex m_mutex;
     double initial_integrated_forward_position;
     double initial_integrated_left_wheel_position;
     double initial_integrated_right_wheel_position;
@@ -352,20 +353,20 @@ class SegwayRMPNode : public rclcpp::Node{
     /*--------------------------------------*/
 
     /****************************************/
-    struct TimerEvent
-    {
-        rclcpp::Time last_expected;                     
-        rclcpp::Time last_real;                         
+    //struct TimerEvent
+    //{
+    //    rclcpp::Time last_expected;                     
+    //    rclcpp::Time last_real;                         
   
-        rclcpp::Time current_expected;                  
-        rclcpp::Time current_real;                      
+    //    rclcpp::Time current_expected;                  
+    //    rclcpp::Time current_real;                      
   
         //struct
         //{
         //    rclcpp::WallDuration last_duration;           
         //} profile;
-    };
-    typedef boost::function<void(const TimerEvent&)> TimerCallback;
+    //};
+    //typedef boost::function<void(const TimerEvent&)> TimerCallback;
     /*--------------------------------------*/
 
     /****************************************/
@@ -374,6 +375,12 @@ class SegwayRMPNode : public rclcpp::Node{
      * command to the Segway RMP.
      */
     void keepAliveCallback() { //keepAliveCallback
+      if (!this->connected || this->reset_odometry) {
+        return;
+      }
+      if (rclcpp::ok()) {
+        boost::mutex::scoped_lock lock(this->m_mutex);
+      }
 
     }
     /*--------------------------------------*/
