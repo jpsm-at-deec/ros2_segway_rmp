@@ -116,6 +116,8 @@ class SegwayRMPNode : public rclcpp::Node{
     double initial_integrated_right_wheel_position;
     double initial_integrated_turn_position;
     double odometry_reset_duration;
+    double linear_odom_scale;
+    double angular_odom_scale;
     bool connected;
     bool reset_odometry;   
     
@@ -130,6 +132,8 @@ class SegwayRMPNode : public rclcpp::Node{
       this->initial_integrated_left_wheel_position = 0.0;
       this->initial_integrated_right_wheel_position = 0.0;
       this->initial_integrated_turn_position = 0.0;
+      this->linear_odom_scale = 1.0;
+      this->angular_odom_scale = 1.0;
       this->run();
     }
     /*--------------------------------------*/
@@ -247,6 +251,11 @@ class SegwayRMPNode : public rclcpp::Node{
       //std::string sss = "wally";
       //segway_status_pub->publish(sss);
       segway_status_pub->publish(this->sss_msg);
+
+      // Grab the newest Segway data
+      float forward_displacement = (ss.integrated_forward_position - this->initial_integrated_forward_position) * this->linear_odom_scale;
+      float yaw_displacement = (ss.integrated_turn_position - this->initial_integrated_turn_position) * degrees_to_radians * this->angular_odom_scale;
+      float yaw_rate = ss.yaw_rate * degrees_to_radians;
     }
     /*--------------------------------------*/
 
