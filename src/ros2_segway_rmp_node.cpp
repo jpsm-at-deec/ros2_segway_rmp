@@ -242,7 +242,8 @@ class SegwayRMPNode : public rclcpp::Node{
       this->sss_msg.segway.powerbase_battery = ss.powerbase_battery_voltage;
       this->sss_msg.segway.motors_enabled = (bool)(ss.motor_status);
 
-      //segway_status_pub.publish(this->sss_msg);
+      std::string sss = "wally";
+      segway_status_pub->publish(sss);
     }
     /*--------------------------------------*/
 
