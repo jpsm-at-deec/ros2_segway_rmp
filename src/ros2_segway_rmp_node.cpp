@@ -34,6 +34,9 @@ class SegwayRMPNode : public rclcpp::Node{
     rclcpp::Time odometry_reset_start_time;
     std::string serial_port;
     double initial_integrated_forward_position;
+    double initial_integrated_left_wheel_position;
+    double initial_integrated_right_wheel_position;
+    double initial_integrated_turn_position;
     bool connected;
     bool reset_odometry;
     
@@ -43,6 +46,9 @@ class SegwayRMPNode : public rclcpp::Node{
       std::shared_ptr<rclcpp::Node> n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
       this->segway_rmp = NULL;
       this->initial_integrated_forward_position = 0.0;
+      this->initial_integrated_left_wheel_position = 0.0;
+      this->initial_integrated_right_wheel_position = 0.0;
+      this->initial_integrated_turn_position = 0.0;
       this->run();
     }
     /*--------------------------------------*/
@@ -101,8 +107,14 @@ class SegwayRMPNode : public rclcpp::Node{
           return; // discard readings for the first 0.25 seconds
         }
 
-        if (fabs(ss.integrated_forward_position) < 1e-3) {
+        if (fabs(ss.integrated_forward_position) < 1e-3 &&
+            fabs(ss.integrated_turn_position) < 1e-3 &&
+            fabs(ss.integrated_left_wheel_position) < 1e-3 &&
+            fabs(ss.integrated_right_wheel_position) < 1e-3) {
           this->initial_integrated_forward_position = ss.integrated_forward_position;
+          this->initial_integrated_left_wheel_position = ss.integrated_left_wheel_position;
+          this->initial_integrated_right_wheel_position = ss.integrated_right_wheel_position;
+          this->initial_integrated_turn_position = ss.integrated_turn_position;
           this->reset_odometry = false;
         }
 
