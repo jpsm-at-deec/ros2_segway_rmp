@@ -116,6 +116,7 @@ class SegwayRMPNode : public rclcpp::Node{
     segway_rmp::SegwayStatusStamped sss_msg;
     rclcpp::Time odometry_reset_start_time;
     rclcpp::Time last_time;
+    rclcpp::TimerBase::SharedPtr keep_alive_timer;
     std::string serial_port;
     geometry_msgs::msg::TransformStamped odom_trans;
     nav_msgs::msg::Odometry odom_msg;
@@ -180,6 +181,10 @@ class SegwayRMPNode : public rclcpp::Node{
     void run() {
       this->connected = false;
       this->setupSegwayRMP();
+      this->setupROSComms();
+
+      std::chrono::duration<double> num_minutes(1.0/20.0);
+      this->keep_alive_timer = n->create_wall_timer(std::chrono::milliseconds(5), std::bind(&SegwayRMPNode::keepAliveCallback, this));
     }
     /*--------------------------------------*/
 
@@ -343,6 +348,17 @@ class SegwayRMPNode : public rclcpp::Node{
     }
     /*--------------------------------------*/
 
+    /****************************************/
+    /**
+     * This method is called at 20Hz.  Each time it sends a movement
+     * command to the Segway RMP.
+     */
+    void keepAliveCallback(const TimerEvent& e) {
+
+    }
+    /*--------------------------------------*/
+
+    /****************************************/
     geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(double yaw)
     {
       geometry_msgs::msg::Quaternion q;
@@ -355,6 +371,7 @@ class SegwayRMPNode : public rclcpp::Node{
       q.w = myQuaternion.getW();
       return q;
     }
+    /*--------------------------------------*/
 
 };
 
