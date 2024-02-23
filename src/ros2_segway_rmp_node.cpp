@@ -106,6 +106,7 @@ class SegwayRMPNode : public rclcpp::Node{
     //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
     //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
     rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("segway_odometry", 1000);
     
     
     //MinimalPublisher segway_status_pub;
@@ -117,6 +118,7 @@ class SegwayRMPNode : public rclcpp::Node{
     rclcpp::Time last_time;
     std::string serial_port;
     geometry_msgs::msg::TransformStamped odom_trans;
+    nav_msgs::msg::Odometry odom_msg;
     std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
     double initial_integrated_forward_position;
     double initial_integrated_left_wheel_position;
@@ -318,6 +320,25 @@ class SegwayRMPNode : public rclcpp::Node{
         //send the transform
         this->odom_broadcaster->sendTransform(this->odom_trans);
       }
+
+      // Publish Odometry
+      this->odom_msg.header.stamp = current_time;
+      this->odom_msg.pose.pose.position.x = this->odometry_x;
+      this->odom_msg.pose.pose.position.y = this->odometry_y;
+      this->odom_msg.pose.pose.position.z = 0.0;
+      this->odom_msg.pose.pose.orientation = quat;
+      this->odom_msg.pose.covariance[0] = 0.00001;
+      this->odom_msg.pose.covariance[7] = 0.00001;
+      this->odom_msg.pose.covariance[14] = 1000000000000.0;
+      this->odom_msg.pose.covariance[21] = 1000000000000.0;
+      this->odom_msg.pose.covariance[28] = 1000000000000.0;
+      this->odom_msg.pose.covariance[35] = 0.001;
+        
+      this->odom_msg.twist.twist.linear.x = vel_x;
+      this->odom_msg.twist.twist.linear.y = vel_y;
+      this->odom_msg.twist.twist.angular.z = yaw_rate;
+        
+      this->odom_pub->publish(this->odom_msg);
     }
     /*--------------------------------------*/
 
