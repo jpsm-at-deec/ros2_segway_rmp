@@ -184,7 +184,10 @@ class SegwayRMPNode : public rclcpp::Node{
       this->setupROSComms();
 
       std::chrono::duration<double> num_minutes(1.0/20.0);
-      this->keep_alive_timer = n->create_wall_timer(std::chrono::milliseconds(5), std::bind(&SegwayRMPNode::keepAliveCallback, this));
+      //auto thisotherthing = n->create_wall_timer(std::chrono::milliseconds(5), std::bind(&SegwayRMPNode::keepAliveCallback, this));
+
+      auto thisotherthing = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::keepAliveCallback, this));
+      //this->keep_alive_timer = 
     }
     /*--------------------------------------*/
 
@@ -349,11 +352,28 @@ class SegwayRMPNode : public rclcpp::Node{
     /*--------------------------------------*/
 
     /****************************************/
+    struct TimerEvent
+    {
+        rclcpp::Time last_expected;                     
+        rclcpp::Time last_real;                         
+  
+        rclcpp::Time current_expected;                  
+        rclcpp::Time current_real;                      
+  
+        //struct
+        //{
+        //    rclcpp::WallDuration last_duration;           
+        //} profile;
+    };
+    typedef boost::function<void(const TimerEvent&)> TimerCallback;
+    /*--------------------------------------*/
+
+    /****************************************/
     /**
      * This method is called at 20Hz.  Each time it sends a movement
      * command to the Segway RMP.
      */
-    void keepAliveCallback(const TimerEvent& e) {
+    void keepAliveCallback() { //keepAliveCallback
 
     }
     /*--------------------------------------*/
