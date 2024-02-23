@@ -30,14 +30,19 @@ class SegwayRMPNode : public rclcpp::Node{
     segwayrmp::SegwayRMP * segway_rmp = NULL;
     segwayrmp::InterfaceType interface_type;
     segwayrmp::SegwayRMPType segway_rmp_type;
-    std::string serial_port;
-    bool connected;
     segway_rmp::SegwayStatusStamped sss_msg;
+    rclcpp::Time odometry_reset_start_time;
+    std::string serial_port;
+    double initial_integrated_forward_position;
+    bool connected;
+    bool reset_odometry;
+    
     
     /****************************************/
     SegwayRMPNode() : Node("ros2_segway_rmp_node") {         
       std::shared_ptr<rclcpp::Node> n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
       this->segway_rmp = NULL;
+      this->initial_integrated_forward_position = 0.0;
       this->run();
     }
     /*--------------------------------------*/
@@ -88,6 +93,20 @@ class SegwayRMPNode : public rclcpp::Node{
       
       rclcpp::Time current_time = rclcpp::Clock(RCL_ROS_TIME).now();
       this->sss_msg.header.stamp = current_time;
+
+      segwayrmp::SegwayStatus &ss = *(ss_ptr);
+
+      if (this->reset_odometry) {
+        if ((current_time - this->odometry_reset_start_time).seconds() < 0.25) {
+          return; // discard readings for the first 0.25 seconds
+        }
+
+        if (fabs(ss.integrated_forward_position) < 1e-3) {
+          this->initial_integrated_forward_position = ss.integrated_forward_position;
+          this->reset_odometry = false;
+        }
+
+      }
     }
     /*--------------------------------------*/
 
