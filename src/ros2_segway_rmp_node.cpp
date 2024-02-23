@@ -110,6 +110,7 @@ class SegwayRMPNode : public rclcpp::Node{
     segwayrmp::SegwayRMPType segway_rmp_type;
     segway_rmp::SegwayStatusStamped sss_msg;
     rclcpp::Time odometry_reset_start_time;
+    rclcpp::Time last_time;
     std::string serial_port;
     double initial_integrated_forward_position;
     double initial_integrated_left_wheel_position;
@@ -119,6 +120,10 @@ class SegwayRMPNode : public rclcpp::Node{
     double linear_odom_scale;
     double angular_odom_scale;
     float last_forward_displacement;
+    float last_yaw_displacement;
+    float odometry_w;
+    float odometry_x;
+    float odometry_y;
     bool connected;
     bool reset_odometry;   
     bool first_odometry;
@@ -135,6 +140,10 @@ class SegwayRMPNode : public rclcpp::Node{
       this->initial_integrated_right_wheel_position = 0.0;
       this->initial_integrated_turn_position = 0.0;
       this->last_forward_displacement = 0.0;
+      this->last_yaw_displacement = 0.0;
+      this->odometry_w = 0.0;
+      this->odometry_x = 0.0;
+      this->odometry_y = 0.0;
       this->linear_odom_scale = 1.0;
       this->angular_odom_scale = 1.0;
       this->first_odometry = true;
@@ -267,9 +276,23 @@ class SegwayRMPNode : public rclcpp::Node{
       float vel_y = 0.0;
       if(!this->first_odometry) {
         float delta_forward_displacement = forward_displacement - this->last_forward_displacement;
+        double delta_time = (current_time-this->last_time).seconds();
+        // Update accumulated odometries and calculate the x and y components 
+        // of velocity
+        this->odometry_w = yaw_displacement;
+        float delta_odometry_x = delta_forward_displacement * std::cos(this->odometry_w);
+        vel_x = delta_odometry_x / delta_time;
+        this->odometry_x += delta_odometry_x;
+        float delta_odometry_y = delta_forward_displacement * std::sin(this->odometry_w);
+        vel_y = delta_odometry_y / delta_time;
+        this->odometry_y += delta_odometry_y;
       } else {
         this->first_odometry = false;
       }
+      // No matter what update the previouse (last) displacements
+      this->last_forward_displacement = forward_displacement;
+      this->last_yaw_displacement = yaw_displacement;
+      this->last_time = current_time;
     }
     /*--------------------------------------*/
 
