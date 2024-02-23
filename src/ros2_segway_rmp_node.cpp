@@ -15,8 +15,12 @@
 #include "std_msgs/msg/header.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/quaternion.h"
 #include "nav_msgs/msg/odometry.hpp"
 #include "tf2_ros/transform_broadcaster.h"
+//#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+//#include "tf2/LinearMath/Quaternion.h"
+#include <tf2/LinearMath/Quaternion.h>
 
 
 
@@ -293,10 +297,29 @@ class SegwayRMPNode : public rclcpp::Node{
       this->last_forward_displacement = forward_displacement;
       this->last_yaw_displacement = yaw_displacement;
       this->last_time = current_time;
+
+      // Create a Quaternion from the yaw displacement
+      //geometry_msgs::msg::Quaternion quat = tf::createQuaternionMsgFromYaw(yaw_displacement);
+      geometry_msgs::msg::Quaternion quat = this->createQuaternionMsgFromYaw(yaw_displacement);
     }
     /*--------------------------------------*/
 
+    geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(double yaw)
+    {
+      geometry_msgs::msg::Quaternion q;
+
+      tf2::Quaternion myQuaternion;
+      myQuaternion.setRPY(0, 0, yaw);
+      q.x = myQuaternion.getX();
+      q.y = myQuaternion.getY();
+      q.z = myQuaternion.getZ();
+      q.w = myQuaternion.getW();
+      return q;
+    }
+
 };
+
+
 
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss) {
   segwayrmp_node_instance->handleStatus(ss);
