@@ -118,8 +118,10 @@ class SegwayRMPNode : public rclcpp::Node{
     double odometry_reset_duration;
     double linear_odom_scale;
     double angular_odom_scale;
+    float last_forward_displacement;
     bool connected;
     bool reset_odometry;   
+    bool first_odometry;
     
     
     /****************************************/
@@ -132,8 +134,10 @@ class SegwayRMPNode : public rclcpp::Node{
       this->initial_integrated_left_wheel_position = 0.0;
       this->initial_integrated_right_wheel_position = 0.0;
       this->initial_integrated_turn_position = 0.0;
+      this->last_forward_displacement = 0.0;
       this->linear_odom_scale = 1.0;
       this->angular_odom_scale = 1.0;
+      this->first_odometry = true;
       this->run();
     }
     /*--------------------------------------*/
@@ -256,6 +260,16 @@ class SegwayRMPNode : public rclcpp::Node{
       float forward_displacement = (ss.integrated_forward_position - this->initial_integrated_forward_position) * this->linear_odom_scale;
       float yaw_displacement = (ss.integrated_turn_position - this->initial_integrated_turn_position) * degrees_to_radians * this->angular_odom_scale;
       float yaw_rate = ss.yaw_rate * degrees_to_radians;
+
+      // Integrate the displacements over time
+      // If not the first odometry calculate the delta in displacements
+      float vel_x = 0.0;
+      float vel_y = 0.0;
+      if(!this->first_odometry) {
+        float delta_forward_displacement = forward_displacement - this->last_forward_displacement;
+      } else {
+        this->first_odometry = false;
+      }
     }
     /*--------------------------------------*/
 
