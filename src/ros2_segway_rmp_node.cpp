@@ -106,7 +106,7 @@ class SegwayRMPNode : public rclcpp::Node{
     //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
     //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
     rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("segway_odometry", 1000);
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
     
     
     //MinimalPublisher segway_status_pub;
@@ -211,6 +211,7 @@ class SegwayRMPNode : public rclcpp::Node{
       //this->segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
       //this->segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
       this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+      this->odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
 
       
     }
