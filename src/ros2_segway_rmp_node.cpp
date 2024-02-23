@@ -132,6 +132,7 @@ class SegwayRMPNode : public rclcpp::Node{
     double linear_vel;
     double target_linear_vel;
     double linear_pos_accel_limit;
+    double linear_neg_accel_limit;
     float last_forward_displacement;
     float last_yaw_displacement;
     float odometry_w;
@@ -161,6 +162,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->linear_vel = 0.0;
       this->target_linear_vel = 0.0;
       this->linear_pos_accel_limit = 0.0;
+      this->linear_neg_accel_limit = 0.0;
       this->linear_odom_scale = 1.0;
       this->angular_odom_scale = 1.0;
       this->first_odometry = true;
@@ -384,8 +386,10 @@ class SegwayRMPNode : public rclcpp::Node{
       if (!this->connected || this->reset_odometry) {
         return;
       }
+
       if (rclcpp::ok()) {
         boost::mutex::scoped_lock lock(this->m_mutex);
+
         // Update the linear velocity based on the linear acceleration limits
         if (this->linear_vel < this->target_linear_vel) {
           // Must increase linear speed
@@ -395,6 +399,12 @@ class SegwayRMPNode : public rclcpp::Node{
             this->linear_vel += this->linear_pos_accel_limit; 
           }
         } else if (this->linear_vel > this->target_linear_vel) {
+          // Must decrease linear speed
+          if (this->linear_neg_accel_limit == 0.0 || this->linear_vel - this->target_linear_vel < this->linear_neg_accel_limit) {
+                    this->linear_vel = this->target_linear_vel;
+          } else {
+            this->linear_vel -= this->linear_neg_accel_limit; 
+          }
         }
       }
 
