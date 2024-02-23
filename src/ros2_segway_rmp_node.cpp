@@ -1,3 +1,6 @@
+#include <iostream>
+#include <sstream>
+#include <cmath>
 #include <cstdio>
 #include <chrono>
 #include <functional>
@@ -5,15 +8,19 @@
 #include <string>
 #include <boost/thread.hpp>
 #include <boost/thread/thread.hpp>
-
-
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/duration.hpp"
 #include "segwayrmp/segwayrmp.h"
-//#include "ros2_segway_rmp/msg/segway_status.hpp"
-//#include "ros2_segway_rmp/msg/segway_status_stamped.hpp"
 #include "SegwayStatusStamped.h"
 #include "std_msgs/msg/header.hpp"
+#include "std_msgs/msg/string.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "tf2_ros/transform_broadcaster.h"
 
+
+
+using namespace std::chrono_literals;
 
 class SegwayRMPNode;
 
@@ -22,13 +29,47 @@ static double degrees_to_radians = M_PI / 180.0;
 
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
+class MinimalPublisher : public rclcpp::Node
+{
+  public:
+    MinimalPublisher()
+    : Node("minimal_publisher"), count_(0)
+    {
+      //publisher_ = this->create_publisher<segway_rmp::SegwayStatusStamped>("topic", 10);
+      publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+      timer_ = this->create_wall_timer(
+      500ms, std::bind(&MinimalPublisher::timer_callback, this));
+    }
 
+  private:
+    void timer_callback()
+    {
+      auto message = std_msgs::msg::String();
+      //auto message = segway_rmp::SegwayStatusStamped();
 
+      //message.data = "Hello, world! " + std::to_string(count_++);
+      //RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
+      publisher_->publish(message);
+    }
+    rclcpp::TimerBase::SharedPtr timer_;
+    //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr publisher_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+    size_t count_;
+};
+
+std::shared_ptr<rclcpp::Node>  n = rclcpp::Node::make_shared("~");
+//rclcpp::Publisher<std_msgs::msg::String>::SharedPtr n_pub = n->create_publisher<std_msgs::msg::String>("topic", 10);
+//rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr
 
 // ROS2 Node class
 class SegwayRMPNode : public rclcpp::Node{
   public:
 
+    //rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr segway_status_pub;
+    //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("topic", 10);
+    
+    //MinimalPublisher segway_status_pub;
     segwayrmp::SegwayRMP * segway_rmp = NULL;
     segwayrmp::InterfaceType interface_type;
     segwayrmp::SegwayRMPType segway_rmp_type;
@@ -45,8 +86,10 @@ class SegwayRMPNode : public rclcpp::Node{
     
     
     /****************************************/
-    SegwayRMPNode() : Node("ros2_segway_rmp_node") {         
-      std::shared_ptr<rclcpp::Node> n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
+    SegwayRMPNode() : Node("ros2_segway_rmp_node") { 
+      //: Node("ros2_segway_rmp_node") 
+      //std::shared_ptr<rclcpp::Node>         
+      n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
       this->segway_rmp = NULL;
       this->initial_integrated_forward_position = 0.0;
       this->initial_integrated_left_wheel_position = 0.0;
@@ -92,6 +135,18 @@ class SegwayRMPNode : public rclcpp::Node{
       segwayrmp_node_instance = this;
 
       this->segway_rmp->setStatusCallback(handleStatusWrapper);
+    }
+    /*--------------------------------------*/    
+
+    /****************************************/
+    void setupROSComms() {
+      // Advertise the SegwayStatusStamped
+      //rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr publisher = n->advertise<segwayrmp::SegwayStatus>("segway_status", 10);
+
+      //this->segway_status_pub = n->advertise<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
+      //this->segway_status_pub = n->advertise<std_msgs::msg::String>("segway_status", 1000);
+      //this->segway_status_pub = n->advertise<std_msgs::msg::String>("segway_status", 1000);
+      this->segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
     }
     /*--------------------------------------*/    
 
@@ -149,6 +204,8 @@ class SegwayRMPNode : public rclcpp::Node{
       this->sss_msg.segway.ui_battery = ss.ui_battery_voltage;
       this->sss_msg.segway.powerbase_battery = ss.powerbase_battery_voltage;
       this->sss_msg.segway.motors_enabled = (bool)(ss.motor_status);
+
+      //segway_status_pub.publish(this->sss_msg);
     }
     /*--------------------------------------*/
 
