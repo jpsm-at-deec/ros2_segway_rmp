@@ -29,33 +29,63 @@ static double degrees_to_radians = M_PI / 180.0;
 
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
-class MinimalPublisher : public rclcpp::Node
+//segway_rmp::SegwayStatusStamped
+template<>
+struct rclcpp::TypeAdapter<std::string, std_msgs::msg::String>
 {
-  public:
-    MinimalPublisher()
-    : Node("minimal_publisher"), count_(0)
-    {
-      //publisher_ = this->create_publisher<segway_rmp::SegwayStatusStamped>("topic", 10);
-      publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
-      timer_ = this->create_wall_timer(
-      500ms, std::bind(&MinimalPublisher::timer_callback, this));
-    }
+  using is_specialized = std::true_type;
+  using custom_type = std::string;
+  using ros_message_type = std_msgs::msg::String;
 
-  private:
-    void timer_callback()
-    {
-      auto message = std_msgs::msg::String();
+  static
+  void
+  convert_to_ros_message(
+    const custom_type & source,
+    ros_message_type & destination)
+  {
+    destination.data = source;
+  }
+
+  static
+  void
+  convert_to_custom(
+    const ros_message_type & source,
+    custom_type & destination)
+  {
+    destination = source.data;
+  }
+};
+
+using SegwayAdaptedType = rclcpp::TypeAdapter<std::string, std_msgs::msg::String>;
+
+//class MinimalPublisher : public rclcpp::Node
+//{
+//  public:
+//    MinimalPublisher()
+//    : Node("minimal_publisher"), count_(0)
+//    {
+      //publisher_ = this->create_publisher<segway_rmp::SegwayStatusStamped>("topic", 10);
+//      publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
+
+//      timer_ = this->create_wall_timer(
+//      500ms, std::bind(&MinimalPublisher::timer_callback, this));
+//    }
+
+//  private:
+//    void timer_callback()
+//    {
+//      auto message = std_msgs::msg::String();
       //auto message = segway_rmp::SegwayStatusStamped();
 
       //message.data = "Hello, world! " + std::to_string(count_++);
       //RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
-      publisher_->publish(message);
-    }
-    rclcpp::TimerBase::SharedPtr timer_;
+//      publisher_->publish(message);
+//    }
+//    rclcpp::TimerBase::SharedPtr timer_;
     //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr publisher_;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
-    size_t count_;
-};
+//    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+//    size_t count_;
+//};
 
 std::shared_ptr<rclcpp::Node>  n = rclcpp::Node::make_shared("~");
 //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr n_pub = n->create_publisher<std_msgs::msg::String>("topic", 10);
@@ -67,7 +97,10 @@ class SegwayRMPNode : public rclcpp::Node{
 
     //rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr segway_status_pub;
     //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("topic", 10);
+    //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
+    //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
+    rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+    
     
     //MinimalPublisher segway_status_pub;
     segwayrmp::SegwayRMP * segway_rmp = NULL;
@@ -146,7 +179,11 @@ class SegwayRMPNode : public rclcpp::Node{
       //this->segway_status_pub = n->advertise<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
       //this->segway_status_pub = n->advertise<std_msgs::msg::String>("segway_status", 1000);
       //this->segway_status_pub = n->advertise<std_msgs::msg::String>("segway_status", 1000);
-      this->segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
+      //this->segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
+      //this->segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
+      this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+
+      
     }
     /*--------------------------------------*/    
 
