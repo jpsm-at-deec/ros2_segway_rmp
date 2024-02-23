@@ -116,6 +116,8 @@ class SegwayRMPNode : public rclcpp::Node{
     rclcpp::Time odometry_reset_start_time;
     rclcpp::Time last_time;
     std::string serial_port;
+    geometry_msgs::msg::TransformStamped odom_trans;
+    std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
     double initial_integrated_forward_position;
     double initial_integrated_left_wheel_position;
     double initial_integrated_right_wheel_position;
@@ -129,6 +131,7 @@ class SegwayRMPNode : public rclcpp::Node{
     float odometry_x;
     float odometry_y;
     bool connected;
+    bool broadcast_tf;
     bool reset_odometry;   
     bool first_odometry;
     
@@ -151,6 +154,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->linear_odom_scale = 1.0;
       this->angular_odom_scale = 1.0;
       this->first_odometry = true;
+      this->broadcast_tf = true;
       this->run();
     }
     /*--------------------------------------*/
@@ -301,6 +305,19 @@ class SegwayRMPNode : public rclcpp::Node{
       // Create a Quaternion from the yaw displacement
       //geometry_msgs::msg::Quaternion quat = tf::createQuaternionMsgFromYaw(yaw_displacement);
       geometry_msgs::msg::Quaternion quat = this->createQuaternionMsgFromYaw(yaw_displacement);
+
+      // Publish the Transform odom->base_link
+      if (this->broadcast_tf) {
+        this->odom_trans.header.stamp = current_time;
+            
+        this->odom_trans.transform.translation.x = this->odometry_x;
+        this->odom_trans.transform.translation.y = this->odometry_y;
+        this->odom_trans.transform.translation.z = 0.0;
+        this->odom_trans.transform.rotation = quat;
+            
+        //send the transform
+        this->odom_broadcaster->sendTransform(this->odom_trans);
+      }
     }
     /*--------------------------------------*/
 
