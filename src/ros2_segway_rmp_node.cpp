@@ -142,6 +142,7 @@ class SegwayRMPNode : public rclcpp::Node{
     double linear_neg_accel_limit;
     double angular_pos_accel_limit; 
     double angular_neg_accel_limit;
+    double segway_motor_timeout;
     float last_forward_displacement;
     float last_yaw_displacement;
     float odometry_w;
@@ -180,6 +181,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->angular_neg_accel_limit = 0.0;
       this->linear_odom_scale = 1.0;
       this->angular_odom_scale = 1.0;
+      this->segway_motor_timeout = 0.5;
       this->first_odometry = true;
       this->broadcast_tf = true;
       this->run();
