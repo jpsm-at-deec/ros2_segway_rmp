@@ -236,11 +236,52 @@ class SegwayRMPNode : public rclcpp::Node{
     int getParameters() {
       // Check for valid acceleration limits
       if (this->linear_pos_accel_limit < 0) {
-      //ROS_ERROR("Invalid linear positive acceleration limit of %f (must be non-negative).",
-      //    this->linear_pos_accel_limit);
+        //ROS_ERROR("Invalid linear positive acceleration limit of %f (must be non-negative).",
+        //    this->linear_pos_accel_limit);
         RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Invalid linear positive acceleration limit of %f (must be non-negative).", this->linear_pos_accel_limit);
         return 1;
       }
+      if (this->linear_neg_accel_limit < 0) {
+        //ROS_ERROR("Invalid linear negative acceleration limit of %f (must be non-negative).",
+        //    this->linear_neg_accel_limit);
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Invalid linear negative acceleration limit of %f (must be non-negative).", this->linear_neg_accel_limit);
+        return 1;
+      }
+      if (this->angular_pos_accel_limit < 0) {
+        //ROS_ERROR("Invalid angular positive acceleration limit of %f (must be non-negative).",
+        //    this->angular_pos_accel_limit);
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Invalid angular positive acceleration limit of %f (must be non-negative).", this->angular_pos_accel_limit);
+        return 1;
+      }
+      if (this->angular_neg_accel_limit < 0) {
+        //ROS_ERROR("Invalid angular negative acceleration limit of %f (must be non-negative).",
+        //    this->angular_neg_accel_limit);
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Invalid angular negative acceleration limit of %f (must be non-negative).", this->angular_neg_accel_limit);
+        return 1;
+      }
+      if (this->max_linear_vel < 0) {
+        //ROS_ERROR("Invalid max linear velocity limit of %f (must be non-negative).",
+        //    this->max_linear_vel);
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Invalid max linear velocity limit of %f (must be non-negative).", this->max_linear_vel);
+        return 1;
+      }
+      if (this->max_angular_vel < 0) {
+        //ROS_ERROR("Invalid max angular velocity limit of %f (must be non-negative).",
+        //    this->max_angular_vel);
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Invalid max angular velocity limit of %f (must be non-negative).", this->max_angular_vel);
+        return 1;
+      }
+      // Convert the linear acceleration limits to have units of (m/s^2)/20 since
+      // the movement commands are sent to the Segway at 20Hz.
+      this->linear_pos_accel_limit /= 20;
+      this->linear_neg_accel_limit /= 20;
+
+      // Convert the angular acceleration limits to have units of (deg/s^2)/20 since
+      // the movement commands are sent to the Segway at 20Hz.
+      this->angular_pos_accel_limit /= 20;
+      this->angular_neg_accel_limit /= 20;
+
+      return 0;
     }
     /*--------------------------------------*/
 
