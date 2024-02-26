@@ -31,6 +31,7 @@ class SegwayRMPNode;
 static SegwayRMPNode * segwayrmp_node_instance;
 static double degrees_to_radians = M_PI / 180.0;
 
+void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "%s",msg.c_str());}
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
 //segway_rmp::SegwayStatusStamped
@@ -254,6 +255,7 @@ class SegwayRMPNode : public rclcpp::Node{
       segwayrmp_node_instance = this;
 
       this->segway_rmp->setStatusCallback(handleStatusWrapper);
+      this->segway_rmp->setLogMsgCallback("debug", handleDebugMessages);
     }
     /*--------------------------------------*/    
 
