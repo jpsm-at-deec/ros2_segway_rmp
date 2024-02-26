@@ -65,6 +65,7 @@ struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Heade
 };
 
 //https://github.com/ZhenshengLee/ros2_shm_msgs/blob/42fde5f188dc5a55be54718cbb601539d2823815/intra/intra_int_node.cpp#L15
+//https://github.com/ros-acceleration/acceleration_examples/tree/b63b1d8851d8d0eff91f7e9552d893d7ce868c6e/nodes/doublevadd_publisher/src
 
 //using SegwayAdaptedType = rclcpp::TypeAdapter<std::string, std_msgs::msg::String>;
 using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
