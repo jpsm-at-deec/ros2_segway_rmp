@@ -205,6 +205,19 @@ class SegwayRMPNode : public rclcpp::Node{
 
       this->keep_alive_timer = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::keepAliveCallback, this));
       //this->keep_alive_timer = 
+
+      this->odometry_reset_start_time = this->get_clock()->now();
+      this->connected = false;
+      while (rclcpp::ok()) {
+        try {
+          this->segway_rmp->connect();
+          this->connected = true;
+        } catch (std::exception& e) {
+          std::string e_msg(e.what());
+          this->connected = false;
+        }
+      }
+
     }
     /*--------------------------------------*/
 
