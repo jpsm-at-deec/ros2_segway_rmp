@@ -136,6 +136,8 @@ class SegwayRMPNode : public rclcpp::Node{
     double angular_vel;
     double target_linear_vel;
     double target_angular_vel;
+    double max_linear_vel; 
+    double max_angular_vel;
     double linear_pos_accel_limit;
     double linear_neg_accel_limit;
     double angular_pos_accel_limit; 
@@ -170,6 +172,8 @@ class SegwayRMPNode : public rclcpp::Node{
       this->angular_vel = 0.0;
       this->target_linear_vel = 0.0;
       this->target_angular_vel = 0.0;
+      this->max_linear_vel = 0.0; 
+      this->max_angular_vel = 0.0;
       this->linear_pos_accel_limit = 0.0;
       this->linear_neg_accel_limit = 0.0;
       this->angular_pos_accel_limit = 0.0;
