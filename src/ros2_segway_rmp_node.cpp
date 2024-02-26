@@ -33,6 +33,7 @@ static double degrees_to_radians = M_PI / 180.0;
 
 void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logger("rclcpp_debug"), "%s",msg.c_str());}
 void handleInfoMessages(const std::string &msg) {RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s",msg.c_str());}
+void handleErrorMessages(const std::string &msg) {RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"), "%s",msg.c_str());}
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
 //segway_rmp::SegwayStatusStamped
@@ -216,6 +217,8 @@ class SegwayRMPNode : public rclcpp::Node{
           this->connected = true;
         } catch (std::exception& e) {
           std::string e_msg(e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Exception while connecting to the SegwayRMP, check your cables and power buttons.");
+          RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"    %s", e_msg.c_str());
           this->connected = false;
         }
         if (this->spin()) { 
@@ -261,6 +264,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->segway_rmp->setStatusCallback(handleStatusWrapper);
       this->segway_rmp->setLogMsgCallback("rclcpp_debug", handleDebugMessages);
       this->segway_rmp->setLogMsgCallback("rclcpp_info", handleInfoMessages);
+      this->segway_rmp->setLogMsgCallback("rclcpp_error", handleErrorMessages);
     }
     /*--------------------------------------*/    
 
