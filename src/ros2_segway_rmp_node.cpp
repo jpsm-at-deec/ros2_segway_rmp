@@ -247,6 +247,10 @@ class SegwayRMPNode : public rclcpp::Node{
 
       this->sss_msg.header.frame_id = this->frame_id;
       this->odom_trans.header.frame_id = this->odom_frame_id;
+      this->odom_trans.child_frame_id = this->frame_id;
+      this->odom_msg.header.frame_id = this->odom_frame_id;
+      this->odom_msg.child_frame_id = this->frame_id;
+
       // Check for valid acceleration limits
       if (this->linear_pos_accel_limit < 0) {
         //ROS_ERROR("Invalid linear positive acceleration limit of %f (must be non-negative).",
