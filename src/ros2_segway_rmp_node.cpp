@@ -216,8 +216,16 @@ class SegwayRMPNode : public rclcpp::Node{
           std::string e_msg(e.what());
           this->connected = false;
         }
+        if (this->spin()) { 
+          rclcpp::sleep_for(std::chrono::milliseconds(50));
+        }
       }
 
+    }
+    /*--------------------------------------*/
+
+    /****************************************/
+    bool spin() {
     }
     /*--------------------------------------*/
 
