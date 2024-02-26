@@ -347,6 +347,8 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     void setupROSComms() {
+      // Subscribe to command velocities
+      this->cmd_velSubscriber = n->subscribe("cmd_vel", 1000, &SegwayRMPNode::cmd_velCallback, this);
       // Advertise the SegwayStatusStamped
       //rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr publisher = n->advertise<segwayrmp::SegwayStatus>("segway_status", 10);
 
