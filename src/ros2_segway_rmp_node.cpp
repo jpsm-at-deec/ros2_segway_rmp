@@ -31,7 +31,8 @@ class SegwayRMPNode;
 static SegwayRMPNode * segwayrmp_node_instance;
 static double degrees_to_radians = M_PI / 180.0;
 
-void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "%s",msg.c_str());}
+void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logger("rclcpp_debug"), "%s",msg.c_str());}
+void handleInfoMessages(const std::string &msg) {RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s",msg.c_str());}
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
 //segway_rmp::SegwayStatusStamped
@@ -228,6 +229,7 @@ class SegwayRMPNode : public rclcpp::Node{
     /****************************************/
     bool spin() {
       if (rclcpp::ok() && this->connected) {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"),"Segway RMP Ready.");
         while (rclcpp::ok() && this->connected) {
           rclcpp::sleep_for(std::chrono::milliseconds(50));
         }
@@ -252,10 +254,13 @@ class SegwayRMPNode : public rclcpp::Node{
       ss << "serial on serial port: " << this->serial_port;
       this->segway_rmp->configureSerial(this->serial_port);
 
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s", ss.str().c_str());
+
       segwayrmp_node_instance = this;
 
       this->segway_rmp->setStatusCallback(handleStatusWrapper);
-      this->segway_rmp->setLogMsgCallback("debug", handleDebugMessages);
+      this->segway_rmp->setLogMsgCallback("rclcpp_debug", handleDebugMessages);
+      this->segway_rmp->setLogMsgCallback("rclcpp_info", handleInfoMessages);
     }
     /*--------------------------------------*/    
 
@@ -299,12 +304,14 @@ class SegwayRMPNode : public rclcpp::Node{
           this->initial_integrated_left_wheel_position = ss.integrated_left_wheel_position;
           this->initial_integrated_right_wheel_position = ss.integrated_right_wheel_position;
           this->initial_integrated_turn_position = ss.integrated_turn_position;
+          RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"),"Integrators reset by Segway RMP successfully");
           this->reset_odometry = false;
         } else if ((current_time - this->odometry_reset_start_time).seconds() > this->odometry_reset_duration) {
           this->initial_integrated_forward_position = ss.integrated_forward_position;
           this->initial_integrated_left_wheel_position = ss.integrated_left_wheel_position;
           this->initial_integrated_right_wheel_position = ss.integrated_right_wheel_position;
-          this->initial_integrated_turn_position = ss.integrated_turn_position;            
+          this->initial_integrated_turn_position = ss.integrated_turn_position; 
+          RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"),"Integrator reset by Segway RMP failed. Performing software reset");           
           this->reset_odometry = false;
         } else {
           return; // continue waiting for odometry to be reset
@@ -467,7 +474,7 @@ class SegwayRMPNode : public rclcpp::Node{
         }
       }
 
-      RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Sending move command: linear velocity = %f, angular velocity = %f",  this->linear_vel, this->angular_vel);
+      RCLCPP_DEBUG(rclcpp::get_logger("rclcpp_debug"), "Sending move command: linear velocity = %f, angular velocity = %f",  this->linear_vel, this->angular_vel);
 
       try {
         this->segway_rmp->move(this->linear_vel, this->angular_vel);
