@@ -432,6 +432,16 @@ class SegwayRMPNode : public rclcpp::Node{
           this->angular_vel -= this->angular_neg_accel_limit; 
         }
       }
+
+      try {
+        this->segway_rmp->move(this->linear_vel, this->angular_vel);
+      } catch (std::exception& e) {
+        std::string e_msg(e.what());
+        //ROS_ERROR("Error commanding Segway RMP: %s", e_msg.c_str());
+        //RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Error commanding Segway RMP: %s", e_msg.c_str());
+        this->connected = false;
+        this->disconnect();
+      }
     }
     /*--------------------------------------*/
 
