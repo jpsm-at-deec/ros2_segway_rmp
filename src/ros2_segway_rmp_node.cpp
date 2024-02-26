@@ -130,7 +130,9 @@ class SegwayRMPNode : public rclcpp::Node{
     double linear_odom_scale;
     double angular_odom_scale;
     double linear_vel;
+    double angular_vel;
     double target_linear_vel;
+    double target_angular_vel;
     double linear_pos_accel_limit;
     double linear_neg_accel_limit;
     float last_forward_displacement;
@@ -160,7 +162,9 @@ class SegwayRMPNode : public rclcpp::Node{
       this->odometry_x = 0.0;
       this->odometry_y = 0.0;
       this->linear_vel = 0.0;
+      this->angular_vel = 0.0;
       this->target_linear_vel = 0.0;
+      this->target_angular_vel = 0.0;
       this->linear_pos_accel_limit = 0.0;
       this->linear_neg_accel_limit = 0.0;
       this->linear_odom_scale = 1.0;
@@ -406,6 +410,10 @@ class SegwayRMPNode : public rclcpp::Node{
             this->linear_vel -= this->linear_neg_accel_limit; 
           }
         }
+      }
+
+      // Update the angular velocity based on the angular acceleration limits
+      if (this->angular_vel < this->target_angular_vel) {
       }
 
     }
