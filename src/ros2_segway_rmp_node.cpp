@@ -122,6 +122,7 @@ class SegwayRMPNode : public rclcpp::Node{
     rclcpp::TimerBase::SharedPtr keep_alive_timer;
     std::string serial_port;
     std::string frame_id;
+    std::string odom_frame_id;
     geometry_msgs::msg::TransformStamped odom_trans;
     nav_msgs::msg::Odometry odom_msg;
     std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
@@ -184,6 +185,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->angular_odom_scale = 1.0;
       this->segway_motor_timeout = 0.5;
       this->frame_id = std::string("base_link");
+      this->odom_frame_id = std::string("odom");
       this->first_odometry = true;
       this->broadcast_tf = true;
       this->run();
@@ -244,6 +246,7 @@ class SegwayRMPNode : public rclcpp::Node{
     int getParameters() {
 
       this->sss_msg.header.frame_id = this->frame_id;
+      this->odom_trans.header.frame_id = this->odom_frame_id;
       // Check for valid acceleration limits
       if (this->linear_pos_accel_limit < 0) {
         //ROS_ERROR("Invalid linear positive acceleration limit of %f (must be non-negative).",
