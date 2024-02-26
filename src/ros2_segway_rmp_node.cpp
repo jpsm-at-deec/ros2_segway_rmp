@@ -64,6 +64,8 @@ struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Heade
   }
 };
 
+//https://github.com/ZhenshengLee/ros2_shm_msgs/blob/42fde5f188dc5a55be54718cbb601539d2823815/intra/intra_int_node.cpp#L15
+
 //using SegwayAdaptedType = rclcpp::TypeAdapter<std::string, std_msgs::msg::String>;
 using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
 
@@ -108,7 +110,7 @@ class SegwayRMPNode : public rclcpp::Node{
     //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub;
     //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
     //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
-    rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+    rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub;// = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
     //rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;
     
@@ -349,6 +351,12 @@ class SegwayRMPNode : public rclcpp::Node{
     /*--------------------------------------*/    
 
     /****************************************/
+    void segwayStatusPubCallback(const SegwayAdaptedType msg) {
+      this->segway_status_pub->publish(msg);
+    }
+    /*--------------------------------------*/    
+
+    /****************************************/
     void setupROSComms() {
       // Subscribe to command velocities
       //this->cmd_velSubscriber = n->subscribe("cmd_vel", 1000, &SegwayRMPNode::cmd_velCallback, this);
@@ -357,7 +365,9 @@ class SegwayRMPNode : public rclcpp::Node{
 
 
       //this->cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));     
-      this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+      //this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+      this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", &SegwayRMPNode::segwayStatusPubCallback);
+      
       this->odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
 
       //this->cmd_velSubscriber = n->advertise<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
