@@ -109,7 +109,8 @@ class SegwayRMPNode : public rclcpp::Node{
     //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
     //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
     rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
-    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
+    //rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;
     
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
     
@@ -355,13 +356,13 @@ class SegwayRMPNode : public rclcpp::Node{
       //rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr publisher = n->advertise<segwayrmp::SegwayStatus>("segway_status", 10);
 
 
-      this->cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));     
+      //this->cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));     
       this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
       this->odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
 
-      this->cmd_velSubscriber = n->advertise<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
-      this->segway_status_pub = n->advertise<SegwayAdaptedType>("segway_status", 1000);
-      this->odom_pub = n->advertise<nav_msgs::msg::Odometry>("odom", 50);
+      //this->cmd_velSubscriber = n->advertise<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
+      //this->segway_status_pub = n->advertise<SegwayAdaptedType>("segway_status", 1000);
+      //this->odom_pub = n->advertise<nav_msgs::msg::Odometry>("odom", 50);
       
 
 
