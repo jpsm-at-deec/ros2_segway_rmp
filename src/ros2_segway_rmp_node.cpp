@@ -199,6 +199,9 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     void run() {
+      if (this->getParameters()) {
+        return;
+      }
       this->connected = false;
       this->setupSegwayRMP();
       this->setupROSComms();
@@ -226,6 +229,18 @@ class SegwayRMPNode : public rclcpp::Node{
         }
       }
 
+    }
+    /*--------------------------------------*/
+
+    /****************************************/
+    int getParameters() {
+      // Check for valid acceleration limits
+      if (this->linear_pos_accel_limit < 0) {
+      //ROS_ERROR("Invalid linear positive acceleration limit of %f (must be non-negative).",
+      //    this->linear_pos_accel_limit);
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Invalid linear positive acceleration limit of %f (must be non-negative).", this->linear_pos_accel_limit);
+        return 1;
+      }
     }
     /*--------------------------------------*/
 
@@ -486,6 +501,7 @@ class SegwayRMPNode : public rclcpp::Node{
         std::string e_msg(e.what());
         //ROS_ERROR("Error commanding Segway RMP: %s", e_msg.c_str());
         //RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Error commanding Segway RMP: %s", e_msg.c_str());
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Error commanding Segway RMP: %s", e_msg.c_str());
         this->connected = false;
         this->disconnect();
       }
