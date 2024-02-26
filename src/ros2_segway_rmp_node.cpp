@@ -150,6 +150,8 @@ class SegwayRMPNode : public rclcpp::Node{
     float odometry_w;
     float odometry_x;
     float odometry_y;
+    bool invert_x;
+    bool invert_z;
     bool connected;
     bool broadcast_tf;
     bool reset_odometry;   
@@ -188,6 +190,8 @@ class SegwayRMPNode : public rclcpp::Node{
       this->odom_frame_id = std::string("odom");
       this->first_odometry = true;
       this->broadcast_tf = true;
+      this->invert_x = false;
+      this->invert_z = false;
       this->run();
     }
     /*--------------------------------------*/
