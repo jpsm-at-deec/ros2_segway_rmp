@@ -467,6 +467,8 @@ class SegwayRMPNode : public rclcpp::Node{
         }
       }
 
+      RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Sending move command: linear velocity = %f, angular velocity = %f",  this->linear_vel, this->angular_vel);
+
       try {
         this->segway_rmp->move(this->linear_vel, this->angular_vel);
       } catch (std::exception& e) {
