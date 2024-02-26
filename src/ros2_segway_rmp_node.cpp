@@ -226,6 +226,17 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     bool spin() {
+      if (rclcpp::ok() && this->connected) {
+        while (rclcpp::ok() && this->connected) {
+          rclcpp::sleep_for(std::chrono::milliseconds(50));
+        }
+      }
+      if (rclcpp::ok()) { // Error not shutdown
+        return true;
+      } else {         // Shutdown
+        return false;
+      }
+
     }
     /*--------------------------------------*/
 
