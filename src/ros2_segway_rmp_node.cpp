@@ -133,6 +133,7 @@ class SegwayRMPNode : public rclcpp::Node{
     rclcpp::Time odometry_reset_start_time;
     rclcpp::Time last_time;
     rclcpp::TimerBase::SharedPtr keep_alive_timer;
+    rclcpp::TimerBase::SharedPtr motor_timeout_timer;
     std::string serial_port;
     std::string frame_id;
     std::string odom_frame_id;
@@ -417,8 +418,20 @@ class SegwayRMPNode : public rclcpp::Node{
         this->target_linear_vel = x;
         this->target_angular_vel = z * radians_to_degrees; // Convert to degrees
 
+        this->motor_timeout_timer = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::motor_timeoutCallback, this));
+         
+        //this->motor_timeout_timer = this->n->createTimer(ros::Duration(this->segway_motor_timeout), &SegwayRMPNode::motor_timeoutCallback, this, true);
+
     }
     /*--------------------------------------*/  
+
+    void motor_timeoutCallback(){
+      boost::mutex::scoped_lock lock(m_mutex);
+        //ROS_INFO("Motor command timeout!  Setting target linear and angular velocities to be zero.");
+      this->target_linear_vel = 0.0;
+      this->target_angular_vel = 0.0;
+
+    }
 
     /****************************************/
     void handleStatus(segwayrmp::SegwayStatus::Ptr &ss_ptr) {
