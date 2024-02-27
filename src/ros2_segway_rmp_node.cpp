@@ -11,7 +11,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/duration.hpp"
 #include "segwayrmp/segwayrmp.h"
-#include "SegwayStatusStamped.h"
+//#include "SegwayStatusStamped.h"
 #include "std_msgs/msg/header.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/twist.hpp"
@@ -21,7 +21,14 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include <tf2/LinearMath/Quaternion.h>
 
-#include "tutorial_interfaces/msg/num.hpp"     
+#include "segway_interfaces/msg/segway.hpp"     
+#include "segway_interfaces/msg/stamped.hpp"     
+
+//#include "segway_interfaces/msg/SegwayStatusStamped.hpp"
+
+//#include "ros2_segway_rmp/msg/SegwayStatus.hpp"     
+//#include "ros2_segway_rmp/msg/SegwayStatusStamped.hpp"
+
 //#include "ros2_segway_rmp/msg/SegwayStatus.hpp"
 //#include "ros2_segway_rmp/msg/SegwayStatusStamped.hpp"
 
@@ -39,9 +46,10 @@ void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logge
 void handleInfoMessages(const std::string &msg) {RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s",msg.c_str());}
 void handleErrorMessages(const std::string &msg) {RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"), "%s",msg.c_str());}
 
-void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
+//void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
+void handleStatusWrapper(segway_interfaces::msg::Stamped::Ptr ss);
 
-template<>
+/*template<>
 struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>
 {
   using is_specialized = std::true_type;
@@ -66,13 +74,13 @@ struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Heade
   {
     destination.header = source; //.data
   }
-};
+};*/
 
 //https://github.com/ZhenshengLee/ros2_shm_msgs/blob/42fde5f188dc5a55be54718cbb601539d2823815/intra/intra_int_node.cpp#L15
 //https://github.com/ros-acceleration/acceleration_examples/tree/b63b1d8851d8d0eff91f7e9552d893d7ce868c6e/nodes/doublevadd_publisher/src
 
 
-using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
+//using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
 
 std::shared_ptr<rclcpp::Node>  n = rclcpp::Node::make_shared("~");
 
@@ -80,8 +88,8 @@ std::shared_ptr<rclcpp::Node>  n = rclcpp::Node::make_shared("~");
 class SegwayRMPNode : public rclcpp::Node{
   public:
 
-    rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub;
-    //rclcpp::Publisher<ros2_segway_rmp::msg::SegwayStatusStamped>::SharedPtr segway_status_pub;
+    //rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub;
+    rclcpp::Publisher<segway_interfaces::msg::Stamped>::SharedPtr segway_status_pub;
     
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;    
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;    
@@ -89,7 +97,9 @@ class SegwayRMPNode : public rclcpp::Node{
     segwayrmp::SegwayRMP * segway_rmp = NULL;
     segwayrmp::InterfaceType interface_type;
     segwayrmp::SegwayRMPType segway_rmp_type;
-    segway_rmp::SegwayStatusStamped sss_msg;
+    //segway_rmp::SegwayStatusStamped sss_msg;
+
+    segway_interfaces::msg::Stamped sss_msg;
     //ros2_segway_rmp::msg::SegwayStatusStamped sss_msg;
     rclcpp::Time odometry_reset_start_time;
     rclcpp::Time last_time;
