@@ -44,11 +44,7 @@ set(LIBS ${ament_cmake_LIBRARIES} ${nav_msgs_LIBRARIES} ${rclcpp_LIBRARIES}
   ${serial_LIBRARIES} ${libsegwayrmp_LIBRARIES} ${tf2_LIBRARIES} ${tf2_ros_LIBRARIES}
   ${thread_LIBRARIES} ${geometry_msgs_LIBRARIES}
   ${rosidl_default_generators_LIBRARIES})
-#rosidl_generate_interfaces(${PROJECT_NAME} #"msg/msg" "msg/FILES"
-#  "msg/SegwayStatus.msg"
-#  "msg/SegwayStatusStamped.msg"
-#  DEPENDENCIES nav_msgs std_msgs geometry_msgs builtin_interfaces
-#)
+
 
 add_executable(ros2_segway_rmp_node src/ros2_segway_rmp_node.cpp)
 target_include_directories(ros2_segway_rmp_node PUBLIC
