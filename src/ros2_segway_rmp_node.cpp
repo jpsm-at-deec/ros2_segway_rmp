@@ -31,6 +31,8 @@ class SegwayRMPNode;
 
 static SegwayRMPNode * segwayrmp_node_instance;
 static double degrees_to_radians = M_PI / 180.0;
+static double radians_to_degrees = 180.0 / M_PI;
+
 
 void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logger("rclcpp_debug"), "%s",msg.c_str());}
 void handleInfoMessages(const std::string &msg) {RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s",msg.c_str());}
