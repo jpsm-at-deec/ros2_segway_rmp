@@ -160,7 +160,7 @@ class SegwayRMPNode : public rclcpp::Node{
         return;
       }
 
-      this->connected = false;
+      
       this->setupSegwayRMP();
       this->setupROSComms();
 
@@ -193,6 +193,7 @@ class SegwayRMPNode : public rclcpp::Node{
     int getParameters() {
 
       this->segway_rmp = NULL;
+      this->connected = false;
       this->initial_integrated_forward_position = 0.0;
       this->initial_integrated_left_wheel_position = 0.0;
       this->initial_integrated_right_wheel_position = 0.0;
