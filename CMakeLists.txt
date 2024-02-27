@@ -17,6 +17,8 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(tutorial_interfaces REQUIRED)
+
 
 # find_package(Boost REQUIRED)
 find_package(Boost COMPONENTS system thread REQUIRED)
@@ -45,7 +47,7 @@ set(LIBS ${ament_cmake_LIBRARIES} ${nav_msgs_LIBRARIES} ${rclcpp_LIBRARIES}
 rosidl_generate_interfaces(${PROJECT_NAME} #"msg/msg" "msg/FILES"
   "msg/SegwayStatus.msg"
   "msg/SegwayStatusStamped.msg"
-  DEPENDENCIES nav_msgs std_msgs geometry_msgs #builtin_interfaces
+  DEPENDENCIES nav_msgs std_msgs geometry_msgs builtin_interfaces
 )
 
 add_executable(ros2_segway_rmp_node src/ros2_segway_rmp_node.cpp)
@@ -65,6 +67,7 @@ ament_target_dependencies(
   "tf2"
   "builtin_interfaces"
   "Boost"
+  "tutorial_interfaces"
 )
 
 install(TARGETS ros2_segway_rmp_node

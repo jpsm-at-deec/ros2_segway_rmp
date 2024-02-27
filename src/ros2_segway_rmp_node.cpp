@@ -21,6 +21,10 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include <tf2/LinearMath/Quaternion.h>
 
+//#include "ros2_segway_rmp/msg/SegwayStatus.hpp"
+//#include "ros2_segway_rmp/msg/SegwayStatusStamped.hpp"
+
+
 using namespace std::chrono_literals;
 
 class SegwayRMPNode;
@@ -76,6 +80,8 @@ class SegwayRMPNode : public rclcpp::Node{
   public:
 
     rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub;
+    //rclcpp::Publisher<ros2_segway_rmp::msg::SegwayStatusStamped>::SharedPtr segway_status_pub;
+    
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;    
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;    
     
@@ -83,6 +89,7 @@ class SegwayRMPNode : public rclcpp::Node{
     segwayrmp::InterfaceType interface_type;
     segwayrmp::SegwayRMPType segway_rmp_type;
     segway_rmp::SegwayStatusStamped sss_msg;
+    //ros2_segway_rmp::msg::SegwayStatusStamped sss_msg;
     rclcpp::Time odometry_reset_start_time;
     rclcpp::Time last_time;
     rclcpp::TimerBase::SharedPtr keep_alive_timer;
@@ -327,7 +334,9 @@ class SegwayRMPNode : public rclcpp::Node{
     /*--------------------------------------*/    
 
     /****************************************/
+    
     void segwayStatusPubCallback(const segway_rmp::SegwayStatusStamped msg) {
+    //void segwayStatusPubCallback(const ros2_segway_rmp::msg::SegwayStatusStamped msg) {
 
       this->segway_status_pub->publish(msg);
 
@@ -338,6 +347,8 @@ class SegwayRMPNode : public rclcpp::Node{
     void setupROSComms() {
 
       this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
+      //this->segway_status_pub = n->create_publisher<ros2_segway_rmp::msg::SegwayStatusStamped>("segway_status", 1000);
+      
       this->cmd_velSubscriber = n->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), std::bind(&SegwayRMPNode::cmd_velCallback, this, std::placeholders::_1));
       this->odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
 
