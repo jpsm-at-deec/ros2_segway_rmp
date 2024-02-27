@@ -392,6 +392,28 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     void cmd_velCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {  
+      if (!this->connected)
+            return;
+        boost::mutex::scoped_lock lock(m_mutex);
+        double x = msg->linear.x, z = msg->angular.z;
+        if (this->invert_x) {
+            x *= -1;
+        }
+        if (this->invert_z) {
+            z *= -1;
+        }
+        if (this->max_linear_vel != 0.0) {
+          if (abs(x) > this->max_linear_vel) {
+            x = (x > 0) ? this->max_linear_vel : -this->max_linear_vel;
+          }
+        }
+        if (this->max_angular_vel != 0.0) {
+          if (abs(z) > this->max_angular_vel) {
+            z = (z > 0) ? this->max_angular_vel : -this->max_angular_vel;
+          }
+        }
+        this->target_linear_vel = x;
+        this->target_angular_vel = z * radians_to_degrees; // Convert to degrees
 
     }
     /*--------------------------------------*/  
