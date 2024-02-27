@@ -19,11 +19,7 @@
 #include "geometry_msgs/msg/quaternion.h"
 #include "nav_msgs/msg/odometry.hpp"
 #include "tf2_ros/transform_broadcaster.h"
-//#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-//#include "tf2/LinearMath/Quaternion.h"
 #include <tf2/LinearMath/Quaternion.h>
-
-
 
 using namespace std::chrono_literals;
 
@@ -33,13 +29,11 @@ static SegwayRMPNode * segwayrmp_node_instance;
 static double degrees_to_radians = M_PI / 180.0;
 static double radians_to_degrees = 180.0 / M_PI;
 
-
 void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logger("rclcpp_debug"), "%s",msg.c_str());}
 void handleInfoMessages(const std::string &msg) {RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s",msg.c_str());}
 void handleErrorMessages(const std::string &msg) {RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"), "%s",msg.c_str());}
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
-//segway_rmp::SegwayStatusStamped
 template<>
 struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>
 {
@@ -70,62 +64,19 @@ struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Heade
 //https://github.com/ZhenshengLee/ros2_shm_msgs/blob/42fde5f188dc5a55be54718cbb601539d2823815/intra/intra_int_node.cpp#L15
 //https://github.com/ros-acceleration/acceleration_examples/tree/b63b1d8851d8d0eff91f7e9552d893d7ce868c6e/nodes/doublevadd_publisher/src
 
-//using SegwayAdaptedType = rclcpp::TypeAdapter<std::string, std_msgs::msg::String>;
+
 using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
 
-//class MinimalPublisher : public rclcpp::Node
-//{
-//  public:
-//    MinimalPublisher()
-//    : Node("minimal_publisher"), count_(0)
-//    {
-      //publisher_ = this->create_publisher<segway_rmp::SegwayStatusStamped>("topic", 10);
-//      publisher_ = this->create_publisher<std_msgs::msg::String>("topic", 10);
-
-//      timer_ = this->create_wall_timer(
-//      500ms, std::bind(&MinimalPublisher::timer_callback, this));
-//    }
-
-//  private:
-//    void timer_callback()
-//    {
-//      auto message = std_msgs::msg::String();
-      //auto message = segway_rmp::SegwayStatusStamped();
-
-      //message.data = "Hello, world! " + std::to_string(count_++);
-      //RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
-//      publisher_->publish(message);
-//    }
-//    rclcpp::TimerBase::SharedPtr timer_;
-    //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr publisher_;
-//    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
-//    size_t count_;
-//};
-
 std::shared_ptr<rclcpp::Node>  n = rclcpp::Node::make_shared("~");
-//rclcpp::Publisher<std_msgs::msg::String>::SharedPtr n_pub = n->create_publisher<std_msgs::msg::String>("topic", 10);
-//rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr
 
 // ROS2 Node class
 class SegwayRMPNode : public rclcpp::Node{
   public:
 
-    //rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr segway_status_pub;
-    //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub;
-    //rclcpp::Publisher<std_msgs::msg::String>::SharedPtr segway_status_pub = n->create_publisher<std_msgs::msg::String>("segway_status", 1000);
-    //rclcpp::Publisher<segway_rmp::SegwayStatusStamped>::SharedPtr segway_status_pub = n->create_publisher<segway_rmp::SegwayStatusStamped>("segway_status", 1000);
-    // = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
-    //rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
-    //rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;
-    //cmd_velSubscriber;// = n->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::QoS(rclcpp::KeepLast(100)), cmd_velCallback);
-
     rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub;
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;    
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;    
     
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
-    
-    
-    //MinimalPublisher segway_status_pub;
     segwayrmp::SegwayRMP * segway_rmp = NULL;
     segwayrmp::InterfaceType interface_type;
     segwayrmp::SegwayRMPType segway_rmp_type;
@@ -170,12 +121,10 @@ class SegwayRMPNode : public rclcpp::Node{
     bool broadcast_tf;
     bool reset_odometry;   
     bool first_odometry;
-    
-    
+        
     /****************************************/
     SegwayRMPNode() : Node("ros2_segway_rmp_node") { 
-      //: Node("ros2_segway_rmp_node") 
-      //std::shared_ptr<rclcpp::Node>         
+     
       n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
       this->segway_rmp = NULL;
       this->initial_integrated_forward_position = 0.0;
@@ -207,41 +156,47 @@ class SegwayRMPNode : public rclcpp::Node{
       this->invert_x = false;
       this->invert_z = false;
       this->run();
+
     }
     /*--------------------------------------*/
     
     /****************************************/
     ~SegwayRMPNode() {
+
       this->disconnect();
+
     }
     /*--------------------------------------*/
 
     /****************************************/
     void disconnect() {
+
       if (this->segway_rmp != NULL) {
         delete this->segway_rmp;
       }
       this->segway_rmp = NULL;
+
     }
     /*--------------------------------------*/
 
     /****************************************/
     void run() {
+
       if (this->getParameters()) {
         return;
       }
+
       this->connected = false;
       this->setupSegwayRMP();
       this->setupROSComms();
 
       std::chrono::duration<double> num_minutes(1.0/20.0);
-      //auto thisotherthing = n->create_wall_timer(std::chrono::milliseconds(5), std::bind(&SegwayRMPNode::keepAliveCallback, this));
-
+      
       this->keep_alive_timer = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::keepAliveCallback, this));
-      //this->keep_alive_timer = 
-
+      
       this->odometry_reset_start_time = this->get_clock()->now();
       this->connected = false;
+
       while (rclcpp::ok()) {
         try {
           this->segway_rmp->connect();
@@ -317,6 +272,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->angular_neg_accel_limit /= 20;
 
       return 0;
+
     }
     /*--------------------------------------*/
 
@@ -339,12 +295,15 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     void setupSegwayRMP() {
+
       std::stringstream ss;
       ss << "Connecting to Segway RMP via ";
+      
       this->interface_type = segwayrmp::InterfaceType::serial;
       this->segway_rmp_type = segwayrmp::SegwayRMPType::rmp200;
       this->serial_port = "ttyUSB0";
       this->segway_rmp = new segwayrmp::SegwayRMP(this->interface_type, this->segway_rmp_type);
+      
       ss << "serial on serial port: " << this->serial_port;
       this->segway_rmp->configureSerial(this->serial_port);
 
@@ -356,45 +315,31 @@ class SegwayRMPNode : public rclcpp::Node{
       this->segway_rmp->setLogMsgCallback("rclcpp_debug", handleDebugMessages);
       this->segway_rmp->setLogMsgCallback("rclcpp_info", handleInfoMessages);
       this->segway_rmp->setLogMsgCallback("rclcpp_error", handleErrorMessages);
+
     }
     /*--------------------------------------*/    
 
     /****************************************/
     void segwayStatusPubCallback(const segway_rmp::SegwayStatusStamped msg) {
+
       this->segway_status_pub->publish(msg);
+
     }
     /*--------------------------------------*/    
 
     /****************************************/
     void setupROSComms() {
-      // Subscribe to command velocities
-      //this->cmd_velSubscriber = n->subscribe("cmd_vel", 1000, &SegwayRMPNode::cmd_velCallback, this);
-       // Advertise the SegwayStatusStamped
-      //rclcpp::Publisher<segwayrmp::SegwayStatus>::SharedPtr publisher = n->advertise<segwayrmp::SegwayStatus>("segway_status", 10);
 
-
-      //this->cmd_velSubscriber = n->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));     
       this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
       this->cmd_velSubscriber = n->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), std::bind(&SegwayRMPNode::cmd_velCallback, this, std::placeholders::_1));
-      
-      //rclcpp::QoS(rclcpp::KeepLast(100)), 
-
-      //this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", &SegwayRMPNode::segwayStatusPubCallback);
-      
       this->odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
 
-      //this->cmd_velSubscriber = n->advertise<geometry_msgs::msg::Twist>("cmd_vel", std::bind(&SegwayRMPNode::cmd_velCallback, this));
-      //this->segway_status_pub = n->advertise<SegwayAdaptedType>("segway_status", 1000);
-      //this->odom_pub = n->advertise<nav_msgs::msg::Odometry>("odom", 50);
-      
-
-
-      
     }
     /*--------------------------------------*/  
 
     /****************************************/
     void cmd_velCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {  
+
       if (!this->connected)
             return;
         boost::mutex::scoped_lock lock(m_mutex);
@@ -419,13 +364,12 @@ class SegwayRMPNode : public rclcpp::Node{
         this->target_angular_vel = z * radians_to_degrees; // Convert to degrees
 
         this->motor_timeout_timer = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::motor_timeoutCallback, this));
-         
-        //this->motor_timeout_timer = this->n->createTimer(ros::Duration(this->segway_motor_timeout), &SegwayRMPNode::motor_timeoutCallback, this, true);
 
     }
     /*--------------------------------------*/  
 
     void motor_timeoutCallback(){
+
       boost::mutex::scoped_lock lock(m_mutex);
         //ROS_INFO("Motor command timeout!  Setting target linear and angular velocities to be zero.");
       this->target_linear_vel = 0.0;
@@ -435,6 +379,7 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     void handleStatus(segwayrmp::SegwayStatus::Ptr &ss_ptr) {
+
       if (!this->connected)
           return;
       
@@ -490,8 +435,6 @@ class SegwayRMPNode : public rclcpp::Node{
       this->sss_msg.segway.powerbase_battery = ss.powerbase_battery_voltage;
       this->sss_msg.segway.motors_enabled = (bool)(ss.motor_status);
 
-      //std::string sss = "wally";
-      //segway_status_pub->publish(sss);
       segway_status_pub->publish(this->sss_msg);
 
       // Grab the newest Segway data
@@ -583,7 +526,8 @@ class SegwayRMPNode : public rclcpp::Node{
      * This method is called at 20Hz.  Each time it sends a movement
      * command to the Segway RMP.
      */
-    void keepAliveCallback() { //keepAliveCallback
+    void keepAliveCallback() { 
+
       if (!this->connected || this->reset_odometry) {
         return;
       }
@@ -657,8 +601,6 @@ class SegwayRMPNode : public rclcpp::Node{
     /*--------------------------------------*/
 
 };
-
-
 
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss) {
   segwayrmp_node_instance->handleStatus(ss);
