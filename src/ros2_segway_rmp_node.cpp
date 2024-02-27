@@ -21,6 +21,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include <tf2/LinearMath/Quaternion.h>
 
+#include "tutorial_interfaces/msg/num.hpp"     
 //#include "ros2_segway_rmp/msg/SegwayStatus.hpp"
 //#include "ros2_segway_rmp/msg/SegwayStatusStamped.hpp"
 
