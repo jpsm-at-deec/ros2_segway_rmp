@@ -26,12 +26,14 @@ using namespace std::chrono_literals;
 class SegwayRMPNode;
 
 static SegwayRMPNode * segwayrmp_node_instance;
+
 static double degrees_to_radians = M_PI / 180.0;
 static double radians_to_degrees = 180.0 / M_PI;
 
 void handleDebugMessages(const std::string &msg) {RCLCPP_DEBUG(rclcpp::get_logger("rclcpp_debug"), "%s",msg.c_str());}
 void handleInfoMessages(const std::string &msg) {RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s",msg.c_str());}
 void handleErrorMessages(const std::string &msg) {RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"), "%s",msg.c_str());}
+
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
 template<>
@@ -126,35 +128,7 @@ class SegwayRMPNode : public rclcpp::Node{
     SegwayRMPNode() : Node("ros2_segway_rmp_node") { 
      
       n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
-      this->segway_rmp = NULL;
-      this->initial_integrated_forward_position = 0.0;
-      this->initial_integrated_left_wheel_position = 0.0;
-      this->initial_integrated_right_wheel_position = 0.0;
-      this->initial_integrated_turn_position = 0.0;
-      this->last_forward_displacement = 0.0;
-      this->last_yaw_displacement = 0.0;
-      this->odometry_w = 0.0;
-      this->odometry_x = 0.0;
-      this->odometry_y = 0.0;
-      this->linear_vel = 0.0;
-      this->angular_vel = 0.0;
-      this->target_linear_vel = 0.0;
-      this->target_angular_vel = 0.0;
-      this->max_linear_vel = 0.0; 
-      this->max_angular_vel = 0.0;
-      this->linear_pos_accel_limit = 0.0;
-      this->linear_neg_accel_limit = 0.0;
-      this->angular_pos_accel_limit = 0.0;
-      this->angular_neg_accel_limit = 0.0;
-      this->linear_odom_scale = 1.0;
-      this->angular_odom_scale = 1.0;
-      this->segway_motor_timeout = 0.5;
-      this->frame_id = std::string("base_link");
-      this->odom_frame_id = std::string("odom");
-      this->first_odometry = true;
-      this->broadcast_tf = true;
-      this->invert_x = false;
-      this->invert_z = false;
+
       this->run();
 
     }
@@ -217,6 +191,38 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     int getParameters() {
+
+      this->segway_rmp = NULL;
+      this->initial_integrated_forward_position = 0.0;
+      this->initial_integrated_left_wheel_position = 0.0;
+      this->initial_integrated_right_wheel_position = 0.0;
+      this->initial_integrated_turn_position = 0.0;
+      this->last_forward_displacement = 0.0;
+      this->last_yaw_displacement = 0.0;
+      this->odometry_w = 0.0;
+      this->odometry_x = 0.0;
+      this->odometry_y = 0.0;
+      this->linear_vel = 0.0;
+      this->angular_vel = 0.0;
+      this->target_linear_vel = 0.0;
+      this->target_angular_vel = 0.0;
+      this->max_linear_vel = 0.0; 
+      this->max_angular_vel = 0.0;
+      this->linear_pos_accel_limit = 0.0;
+      this->linear_neg_accel_limit = 0.0;
+      this->angular_pos_accel_limit = 0.0;
+      this->angular_neg_accel_limit = 0.0;
+      this->linear_odom_scale = 1.0;
+      this->angular_odom_scale = 1.0;
+      this->odometry_reset_duration = 1.0;
+      this->reset_odometry = false;
+      this->segway_motor_timeout = 0.5;
+      this->frame_id = std::string("base_link");
+      this->odom_frame_id = std::string("odom");
+      this->first_odometry = true;
+      this->broadcast_tf = true;
+      this->invert_x = false;
+      this->invert_z = false;
 
       this->sss_msg.header.frame_id = this->frame_id;
       this->odom_trans.header.frame_id = this->odom_frame_id;
