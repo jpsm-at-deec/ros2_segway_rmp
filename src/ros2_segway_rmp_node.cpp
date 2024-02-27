@@ -347,11 +347,11 @@ class SegwayRMPNode : public rclcpp::Node{
     /****************************************/
     
     //void segwayStatusPubCallback(const segway_rmp::SegwayStatusStamped msg) {
-    void segwayStatusPubCallback(const segway_interfaces::msg::Stamped msg) {
+    //void segwayStatusPubCallback(const segway_interfaces::msg::Stamped msg) {
 
-      this->segway_status_pub->publish(msg);
+    //  this->segway_status_pub->publish(msg);
 
-    }
+    //}
     /*--------------------------------------*/    
 
     /****************************************/
