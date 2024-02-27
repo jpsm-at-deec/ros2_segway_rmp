@@ -70,7 +70,7 @@ install(TARGETS ros2_segway_rmp_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch
-  DESTINATION ${PROJECT_NAME}/launch)
+  DESTINATION launch/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

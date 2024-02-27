@@ -1,3 +1,3 @@
 <launch>
-  <node pkg="ros2_segway_rmp" exec="ros2_segway_rmp_node" name="ros2segwayrmpnode" namespace="ros2segwayrmp"/>
+  <node pkg="ros2_segway_rmp" exec="ros2_segway_rmp_node"/>
 </launch>
