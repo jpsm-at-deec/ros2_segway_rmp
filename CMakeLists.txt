@@ -90,6 +90,8 @@ target_compile_features(ros2_segway_rmp_example PUBLIC c_std_99 cxx_std_17)  # R
   "Boost"
   "segway_interfaces"
 )
+ament_target_dependencies(ros2_segway_rmp_example geometry_msgs libsegwayrmp nav_msgs rclcpp serial std_msgs tf2_ros tf2 builtin_interfaces Boost segway_interfaces)
+
   
 install(TARGETS ros2_segway_rmp_example
   DESTINATION examples)
