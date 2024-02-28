@@ -82,7 +82,7 @@ struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Heade
 
 //using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
 
-std::shared_ptr<rclcpp::Node>  n = rclcpp::Node::make_shared("~");
+std::shared_ptr<rclcpp::Node>  n;// = rclcpp::Node::make_shared("~");
 
 // ROS2 Node class
 class SegwayRMPNode : public rclcpp::Node{
