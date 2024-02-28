@@ -12,7 +12,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 
 
-//std::shared_ptr<rclcpp::Node>  n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
+std::shared_ptr<rclcpp::Node>  n;// = rclcpp::Node::make_shared("ros2_segway_rmp_node");
 
 // ROS2 Node class
 class SegwayRMPNode : public rclcpp::Node{
