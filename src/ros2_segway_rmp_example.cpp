@@ -13,34 +13,38 @@
 
 // ROS2 Node class
 class SegwayRMPNode : public rclcpp::Node{
+
+  rclcpp::Publisher<segway_interfaces::msg::Stamped>::SharedPtr segway_status_pub;    
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;    
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;  
+  bool optionaldebug = true;
+  
   public:
-    SegwayRMPNode() : Node("ros2_segway_rmp_node") {       
-      if (this->optionaldebug): { 
+    SegwayRMPNode() : Node("ros2_segway_rmp_node") {  
+      this->optionaldebug = true;     
+      if (this->optionaldebug) { 
         std::cout << "SegwayRMPNode class init\n";         
       };
       this->setupROSComms();
-      if (this->optionaldebug): { 
+      if (this->optionaldebug) { 
         std::cout << "SegwayRMPNode class init done\n";  
       };
     }
     ~SegwayRMPNode() {
     }
     void setupROSComms() {
-      if (this->optionaldebug): {
+      if (this->optionaldebug) {
         std::cout << "setupROSComms call\n";  
       };
-      this->segway_status_pub = n->create_publisher<segway_interfaces::msg::Stamped>("segway_status", 1000);      
-      this->cmd_velSubscriber = n->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), std::bind(&SegwayRMPNode::cmd_velCallback, this, std::placeholders::_1));
-      this->odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
-      if (this->optionaldebug): {
+      //this->segway_status_pub;// = n->create_publisher<segway_interfaces::msg::Stamped>("segway_status", 1000);      
+      //this->cmd_velSubscriber;// = n->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), std::bind(&SegwayRMPNode::cmd_velCallback, this, std::placeholders::_1));
+      //this->odom_pub;// = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
+      if (this->optionaldebug) {
         std::cout << "setupROSComms call done\n";  
       };
     }
 
-    rclcpp::Publisher<segway_interfaces::msg::Stamped>::SharedPtr segway_status_pub;    
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;    
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;  
-    bool optionaldebug = true;
+    
 };
 
 int main(int argc, char * argv[])
