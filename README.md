@@ -1,21 +1,18 @@
 # ros2_segway_rmp
 
 
-ros2 launch ros2_segway_rmp ros2_segway_rmp_launch.xml
+    ros2 launch ros2_segway_rmp ros2_segway_rmp_launch.xml
 -------------------
 
-ros2 topic list
+    ros2 topic list -t
 -------------------
 
-/cmd_vel
+    /cmd_vel [geometry_msgs/msg/Twist]
+    /odom [nav_msgs/msg/Odometry]
+    /parameter_events [rcl_interfaces/msg/ParameterEvent]
+    /rosout [rcl_interfaces/msg/Log]
+    /segway_status [segway_interfaces/msg/Stamped]
 
-/odom
-
-/parameter_events
-
-/rosout
-
-/segway_status
 
 
 # ov
