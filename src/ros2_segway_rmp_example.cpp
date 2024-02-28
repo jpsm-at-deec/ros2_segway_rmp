@@ -233,7 +233,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->segway_rmp->setLogMsgCallback("rclcpp_info", handleInfoMessages);
       this->segway_rmp->setLogMsgCallback("rclcpp_error", handleErrorMessages);      
       if (this->optionaldebug) {
-        std::cout << "[wally] setupSegwayRMP call\n";  
+        std::cout << "[wally] setupSegwayRMP call done\n";  
       };
     }
     void handleStatus(segwayrmp::SegwayStatus::Ptr &ss_ptr) {
@@ -353,19 +353,139 @@ class SegwayRMPNode : public rclcpp::Node{
       this->odom_msg.twist.twist.angular.z = yaw_rate;
         
       this->odom_pub->publish(this->odom_msg);
+      if (this->optionaldebug) {
+        std::cout << "[wally] handleStatus call done\n";  
+      };
     }
     geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(double yaw)
     {
+      if (this->optionaldebug) {
+        std::cout << "[wally] createQuaternionMsgFromYaw call\n";  
+      };
       geometry_msgs::msg::Quaternion q;
-
       tf2::Quaternion myQuaternion;
       myQuaternion.setRPY(0, 0, yaw);
       q.x = myQuaternion.getX();
       q.y = myQuaternion.getY();
       q.z = myQuaternion.getZ();
       q.w = myQuaternion.getW();
+      if (this->optionaldebug) {
+        std::cout << "[wally] createQuaternionMsgFromYaw call done\n";  
+      };
       return q;
-    } 
+    }
+    void run() {
+      if (this->optionaldebug) {
+        std::cout << "[wally] run call\n";  
+      };
+      std::chrono::duration<double> num_minutes(1.0/20.0);      
+      this->keep_alive_timer = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::keepAliveCallback, this));      
+      this->odometry_reset_start_time = this->get_clock()->now();
+      this->connected = false;
+      while (rclcpp::ok()) {
+        try {
+          this->segway_rmp->connect();
+          this->connected = true;
+        } catch (std::exception& e) {
+          std::string e_msg(e.what());
+          RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Exception while connecting to the SegwayRMP, check your cables and power buttons.");
+          RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"    %s", e_msg.c_str());
+          this->connected = false;
+        }
+        if (this->spin()) { 
+          rclcpp::sleep_for(std::chrono::milliseconds(50));
+        }
+      }
+      if (this->optionaldebug) {
+        std::cout << "[wally] run call done\n";  
+      };
+    }
+    void keepAliveCallback() {
+      if (this->optionaldebug) {
+        std::cout << "[wally] keepAliveCallback call\n";  
+      }; 
+      if (!this->connected || this->reset_odometry) {
+        return;
+      }
+      if (rclcpp::ok()) {
+        boost::mutex::scoped_lock lock(this->m_mutex);
+        // Update the linear velocity based on the linear acceleration limits
+        if (this->linear_vel < this->target_linear_vel) {
+          // Must increase linear speed
+          if (this->linear_pos_accel_limit == 0.0 || this->target_linear_vel - this->linear_vel < this->linear_pos_accel_limit) {
+            this->linear_vel = this->target_linear_vel;
+          } else {
+            this->linear_vel += this->linear_pos_accel_limit; 
+          }
+        } else if (this->linear_vel > this->target_linear_vel) {
+          // Must decrease linear speed
+          if (this->linear_neg_accel_limit == 0.0 || this->linear_vel - this->target_linear_vel < this->linear_neg_accel_limit) {
+                    this->linear_vel = this->target_linear_vel;
+          } else {
+            this->linear_vel -= this->linear_neg_accel_limit; 
+          }
+        }
+      }
+      // Update the angular velocity based on the angular acceleration limits
+      if (this->angular_vel < this->target_angular_vel) {
+        // Must increase angular speed
+        if (this->angular_pos_accel_limit == 0.0 || this->target_angular_vel - this->angular_vel < this->angular_pos_accel_limit) {
+          this->angular_vel = this->target_angular_vel;
+        } else {
+          this->angular_vel += this->angular_pos_accel_limit;
+        }
+      } else if (this->angular_vel > this->target_angular_vel) {
+        // Must decrease angular speed
+        if (this->angular_neg_accel_limit == 0.0 || this->angular_vel - this->target_angular_vel < this->angular_neg_accel_limit) {
+          this->angular_vel = this->target_angular_vel;
+        } else {
+          this->angular_vel -= this->angular_neg_accel_limit; 
+        }
+      }
+      RCLCPP_DEBUG(rclcpp::get_logger("rclcpp_debug"), "Sending move command: linear velocity = %f, angular velocity = %f",  this->linear_vel, this->angular_vel);
+      try {
+        this->segway_rmp->move(this->linear_vel, this->angular_vel);
+      } catch (std::exception& e) {
+        std::string e_msg(e.what());
+        RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"),"Error commanding Segway RMP: %s", e_msg.c_str());
+        this->connected = false;
+        this->disconnect();
+      }
+      if (this->optionaldebug) {
+        std::cout << "[wally] keepAliveCallback call done\n";  
+      }; 
+    }
+    void disconnect() {
+      if (this->optionaldebug) {
+        std::cout << "[wally] disconnect call \n";  
+      }; 
+      if (this->segway_rmp != NULL) {
+        delete this->segway_rmp;
+      }
+      this->segway_rmp = NULL;
+      if (this->optionaldebug) {
+        std::cout << "[wally] disconnect call done\n";  
+      }; 
+    }
+    bool spin() {
+      if (this->optionaldebug) {
+        std::cout << "[wally] spin call \n";  
+      }; 
+      if (rclcpp::ok() && this->connected) {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"),"Segway RMP Ready.");
+        while (rclcpp::ok() && this->connected) {
+          rclcpp::sleep_for(std::chrono::milliseconds(50));
+        }
+      }
+      if (rclcpp::ok()) { // Error not shutdown
+        return true;
+      } else {         // Shutdown
+        return false;
+      }
+      if (this->optionaldebug) {
+        std::cout << "[wally] spin call done\n";  
+      }; 
+    }
 };
 
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss) {
