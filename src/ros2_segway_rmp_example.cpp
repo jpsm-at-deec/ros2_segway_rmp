@@ -47,10 +47,6 @@ void handleErrorMessages(const std::string &msg) {
 
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
 
-void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss) {
-  segwayrmp_node_instance->handleStatus(ss);
-}
-
 std::shared_ptr<rclcpp::Node>  n;
 
 // ROS2 Node class
@@ -154,7 +150,10 @@ class SegwayRMPNode : public rclcpp::Node{
       this->angular_pos_accel_limit /= 20;
       this->angular_neg_accel_limit /= 20;   
       n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
+      /*--*/
       this->setupROSComms();
+      this->setupSegwayRMP();
+      /*--*/
       if (this->optionaldebug) { 
         std::cout << "[wally] SegwayRMPNode class init done\n";  
       };
@@ -236,9 +235,134 @@ class SegwayRMPNode : public rclcpp::Node{
       if (this->optionaldebug) {
         std::cout << "[wally] setupSegwayRMP call\n";  
       };
+    }
+    void handleStatus(segwayrmp::SegwayStatus::Ptr &ss_ptr) {
+      if (this->optionaldebug) {
+        std::cout << "[wally] handleStatus call\n";  
+      };
+      if (!this->connected) {
+          return;
+      }      
+      rclcpp::Time current_time = rclcpp::Clock(RCL_ROS_TIME).now();
+      this->sss_msg.header.stamp = current_time;
+      segwayrmp::SegwayStatus &ss = *(ss_ptr);
+      if (this->reset_odometry) {
+        if ((current_time - this->odometry_reset_start_time).seconds() < 0.25) {
+          return;
+        }
+        if (fabs(ss.integrated_forward_position) < 1e-3 &&
+            fabs(ss.integrated_turn_position) < 1e-3 &&
+            fabs(ss.integrated_left_wheel_position) < 1e-3 &&
+            fabs(ss.integrated_right_wheel_position) < 1e-3) {
+          this->initial_integrated_forward_position = ss.integrated_forward_position;
+          this->initial_integrated_left_wheel_position = ss.integrated_left_wheel_position;
+          this->initial_integrated_right_wheel_position = ss.integrated_right_wheel_position;
+          this->initial_integrated_turn_position = ss.integrated_turn_position;
+          RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"),"Integrators reset by Segway RMP successfully");
+          this->reset_odometry = false;
+        } else if ((current_time - this->odometry_reset_start_time).seconds() > this->odometry_reset_duration) {
+          this->initial_integrated_forward_position = ss.integrated_forward_position;
+          this->initial_integrated_left_wheel_position = ss.integrated_left_wheel_position;
+          this->initial_integrated_right_wheel_position = ss.integrated_right_wheel_position;
+          this->initial_integrated_turn_position = ss.integrated_turn_position; 
+          RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"),"Integrator reset by Segway RMP failed. Performing software reset");           
+          this->reset_odometry = false;
+        } else {
+          return; // continue waiting for odometry to be reset
+        }
+      }
+      this->sss_msg.segway.pitch_angle = ss.pitch * degrees_to_radians;
+      this->sss_msg.segway.pitch_rate = ss.pitch_rate * degrees_to_radians;
+      this->sss_msg.segway.roll_angle = ss.roll * degrees_to_radians;
+      this->sss_msg.segway.roll_rate = ss.roll_rate * degrees_to_radians;
+      this->sss_msg.segway.left_wheel_velocity = ss.left_wheel_speed;
+      this->sss_msg.segway.right_wheel_velocity = ss.right_wheel_speed;
+      this->sss_msg.segway.yaw_rate = ss.yaw_rate * degrees_to_radians;
+      this->sss_msg.segway.servo_frames = ss.servo_frames;
+      this->sss_msg.segway.left_wheel_displacement = ss.integrated_left_wheel_position - this->initial_integrated_left_wheel_position;
+      this->sss_msg.segway.right_wheel_displacement = ss.integrated_right_wheel_position - this->initial_integrated_right_wheel_position;
+      this->sss_msg.segway.forward_displacement = ss.integrated_forward_position - this->initial_integrated_forward_position;
+      this->sss_msg.segway.yaw_displacement = (ss.integrated_turn_position - this->initial_integrated_turn_position) * degrees_to_radians;
+      this->sss_msg.segway.left_motor_torque = ss.left_motor_torque;
+      this->sss_msg.segway.right_motor_torque = ss.right_motor_torque;
+      this->sss_msg.segway.operation_mode = ss.operational_mode;
+      this->sss_msg.segway.gain_schedule = ss.controller_gain_schedule;
+      this->sss_msg.segway.ui_battery = ss.ui_battery_voltage;
+      this->sss_msg.segway.powerbase_battery = ss.powerbase_battery_voltage;
+      this->sss_msg.segway.motors_enabled = (bool)(ss.motor_status);
 
-    }    
+      segway_status_pub->publish(this->sss_msg);
+
+      // Grab the newest Segway data
+      float forward_displacement = (ss.integrated_forward_position - this->initial_integrated_forward_position) * this->linear_odom_scale;
+      float yaw_displacement = (ss.integrated_turn_position - this->initial_integrated_turn_position) * degrees_to_radians * this->angular_odom_scale;
+      float yaw_rate = ss.yaw_rate * degrees_to_radians;
+
+      // Integrate the displacements over time
+      // If not the first odometry calculate the delta in displacements
+      float vel_x = 0.0;
+      float vel_y = 0.0;
+      if(!this->first_odometry) {
+        float delta_forward_displacement = forward_displacement - this->last_forward_displacement;
+        double delta_time = (current_time-this->last_time).seconds();
+        // Update accumulated odometries and calculate the x and y components 
+        // of velocity
+        this->odometry_w = yaw_displacement;
+        float delta_odometry_x = delta_forward_displacement * std::cos(this->odometry_w);
+        vel_x = delta_odometry_x / delta_time;
+        this->odometry_x += delta_odometry_x;
+        float delta_odometry_y = delta_forward_displacement * std::sin(this->odometry_w);
+        vel_y = delta_odometry_y / delta_time;
+        this->odometry_y += delta_odometry_y;
+      } else {
+        this->first_odometry = false;
+      }
+      // No matter what update the previouse (last) displacements
+      this->last_forward_displacement = forward_displacement;
+      this->last_yaw_displacement = yaw_displacement;
+      this->last_time = current_time;
+
+      // Create a Quaternion from the yaw displacement
+      //geometry_msgs::msg::Quaternion quat = tf::createQuaternionMsgFromYaw(yaw_displacement);
+      geometry_msgs::msg::Quaternion quat = this->createQuaternionMsgFromYaw(yaw_displacement);
+
+      // Publish the Transform odom->base_link
+      if (this->broadcast_tf) {
+        this->odom_trans.header.stamp = current_time;
+            
+        this->odom_trans.transform.translation.x = this->odometry_x;
+        this->odom_trans.transform.translation.y = this->odometry_y;
+        this->odom_trans.transform.translation.z = 0.0;
+        this->odom_trans.transform.rotation = quat;
+            
+        //send the transform
+        this->odom_broadcaster->sendTransform(this->odom_trans);
+      }
+
+      // Publish Odometry
+      this->odom_msg.header.stamp = current_time;
+      this->odom_msg.pose.pose.position.x = this->odometry_x;
+      this->odom_msg.pose.pose.position.y = this->odometry_y;
+      this->odom_msg.pose.pose.position.z = 0.0;
+      this->odom_msg.pose.pose.orientation = quat;
+      this->odom_msg.pose.covariance[0] = 0.00001;
+      this->odom_msg.pose.covariance[7] = 0.00001;
+      this->odom_msg.pose.covariance[14] = 1000000000000.0;
+      this->odom_msg.pose.covariance[21] = 1000000000000.0;
+      this->odom_msg.pose.covariance[28] = 1000000000000.0;
+      this->odom_msg.pose.covariance[35] = 0.001;
+        
+      this->odom_msg.twist.twist.linear.x = vel_x;
+      this->odom_msg.twist.twist.linear.y = vel_y;
+      this->odom_msg.twist.twist.angular.z = yaw_rate;
+        
+      this->odom_pub->publish(this->odom_msg);
+    } 
 };
+
+void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss) {
+  segwayrmp_node_instance->handleStatus(ss);
+}
 
 int main(int argc, char * argv[])
 {
