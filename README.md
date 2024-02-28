@@ -69,7 +69,7 @@
     │   └── serial [d]
     └── ...
 
-[a] https://github.com/jpsm-at-deec/libsegwayrmp
+[a] https://github.com/jpsm-at-deec/libsegwayrmp (jammy branch)
 
 [b] https://github.com/jpsm-at-deec/ros2_segway_rmp/
 
