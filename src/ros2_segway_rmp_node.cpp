@@ -308,10 +308,8 @@ class SegwayRMPNode : public rclcpp::Node{
 
     /****************************************/
     void setupROSComms() {
-
-      //this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
-      this->segway_status_pub = n->create_publisher<segway_interfaces::msg::Stamped>("segway_status", 1000);
       
+      this->segway_status_pub = n->create_publisher<segway_interfaces::msg::Stamped>("segway_status", 1000);      
       this->cmd_velSubscriber = n->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::SensorDataQoS(), std::bind(&SegwayRMPNode::cmd_velCallback, this, std::placeholders::_1));
       this->odom_pub = n->create_publisher<nav_msgs::msg::Odometry>("odom", 50);
 
