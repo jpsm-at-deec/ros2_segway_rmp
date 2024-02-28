@@ -53,7 +53,9 @@
     	float32 powerbase_battery
     	bool    motors_enable
  
+-------------------
 
+    ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.1, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
 
 
 # ov
