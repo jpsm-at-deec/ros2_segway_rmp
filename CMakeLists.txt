@@ -69,6 +69,32 @@ ament_target_dependencies(
 install(TARGETS ros2_segway_rmp_node
   DESTINATION lib/${PROJECT_NAME})
 
+
+#---------------------------
+add_executable(ros2_segway_rmp_example src/ros2_segway_rmp_example.cpp)
+target_include_directories(ros2_segway_rmp_example PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(ros2_segway_rmp_example PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+  ament_target_dependencies(
+  ros2_segway_rmp_example
+  "geometry_msgs"
+  "libsegwayrmp"
+  "nav_msgs"
+  "rclcpp"
+  "serial"
+  "std_msgs"
+  "tf2_ros"
+  "tf2"
+  "builtin_interfaces"
+  "Boost"
+  "segway_interfaces"
+)
+  
+install(TARGETS ros2_segway_rmp_example
+  DESTINATION examples)
+#---------------------------
+
 install(DIRECTORY launch
   DESTINATION launch/${PROJECT_NAME})
 
