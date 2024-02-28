@@ -322,14 +322,12 @@ class SegwayRMPNode : public rclcpp::Node{
       this->last_yaw_displacement = yaw_displacement;
       this->last_time = current_time;
 
-      // Create a Quaternion from the yaw displacement
-      //geometry_msgs::msg::Quaternion quat = tf::createQuaternionMsgFromYaw(yaw_displacement);
+      // Create a Quaternion from the yaw displacement      
       geometry_msgs::msg::Quaternion quat = this->createQuaternionMsgFromYaw(yaw_displacement);
 
       // Publish the Transform odom->base_link
       if (this->broadcast_tf) {
-        this->odom_trans.header.stamp = current_time;
-            
+        this->odom_trans.header.stamp = current_time;            
         this->odom_trans.transform.translation.x = this->odometry_x;
         this->odom_trans.transform.translation.y = this->odometry_y;
         this->odom_trans.transform.translation.z = 0.0;
@@ -338,7 +336,6 @@ class SegwayRMPNode : public rclcpp::Node{
         //send the transform
         this->odom_broadcaster->sendTransform(this->odom_trans);
       }
-
       // Publish Odometry
       this->odom_msg.header.stamp = current_time;
       this->odom_msg.pose.pose.position.x = this->odometry_x;
@@ -350,13 +347,24 @@ class SegwayRMPNode : public rclcpp::Node{
       this->odom_msg.pose.covariance[14] = 1000000000000.0;
       this->odom_msg.pose.covariance[21] = 1000000000000.0;
       this->odom_msg.pose.covariance[28] = 1000000000000.0;
-      this->odom_msg.pose.covariance[35] = 0.001;
-        
+      this->odom_msg.pose.covariance[35] = 0.001;        
       this->odom_msg.twist.twist.linear.x = vel_x;
       this->odom_msg.twist.twist.linear.y = vel_y;
       this->odom_msg.twist.twist.angular.z = yaw_rate;
         
       this->odom_pub->publish(this->odom_msg);
+    }
+    geometry_msgs::msg::Quaternion createQuaternionMsgFromYaw(double yaw)
+    {
+      geometry_msgs::msg::Quaternion q;
+
+      tf2::Quaternion myQuaternion;
+      myQuaternion.setRPY(0, 0, yaw);
+      q.x = myQuaternion.getX();
+      q.y = myQuaternion.getY();
+      q.z = myQuaternion.getZ();
+      q.w = myQuaternion.getW();
+      return q;
     } 
 };
 
