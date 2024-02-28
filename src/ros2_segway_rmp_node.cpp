@@ -11,7 +11,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/duration.hpp"
 #include "segwayrmp/segwayrmp.h"
-//#include "SegwayStatusStamped.h"
 #include "std_msgs/msg/header.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/twist.hpp"
@@ -20,18 +19,8 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include <tf2/LinearMath/Quaternion.h>
-
 #include "segway_interfaces/msg/segwaystatus.hpp"     
 #include "segway_interfaces/msg/stamped.hpp"     
-
-//#include "segway_interfaces/msg/SegwayStatusStamped.hpp"
-
-//#include "ros2_segway_rmp/msg/SegwayStatus.hpp"     
-//#include "ros2_segway_rmp/msg/SegwayStatusStamped.hpp"
-
-//#include "ros2_segway_rmp/msg/SegwayStatus.hpp"
-//#include "ros2_segway_rmp/msg/SegwayStatusStamped.hpp"
-
 
 using namespace std::chrono_literals;
 
@@ -47,71 +36,41 @@ void handleInfoMessages(const std::string &msg) {RCLCPP_INFO(rclcpp::get_logger(
 void handleErrorMessages(const std::string &msg) {RCLCPP_ERROR(rclcpp::get_logger("rclcpp_error"), "%s",msg.c_str());}
 
 void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss);
-//void handleStatusWrapper(segway_interfaces::msg::Stamped::Ptr ss);
 
-/*template<>
-struct rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>
-{
-  using is_specialized = std::true_type;
-  using custom_type = segway_rmp::SegwayStatusStamped;
-  using ros_message_type = std_msgs::msg::Header;
-
-  static
-  void
-  convert_to_ros_message(
-    const custom_type & source,
-    ros_message_type & destination)
-  {
-    //destination.data = source.header;
-    destination = source.header;
-  }
-
-  static
-  void
-  convert_to_custom(
-    const ros_message_type & source,
-    custom_type & destination)
-  {
-    destination.header = source; //.data
-  }
-};*/
-
-//https://github.com/ZhenshengLee/ros2_shm_msgs/blob/42fde5f188dc5a55be54718cbb601539d2823815/intra/intra_int_node.cpp#L15
-//https://github.com/ros-acceleration/acceleration_examples/tree/b63b1d8851d8d0eff91f7e9552d893d7ce868c6e/nodes/doublevadd_publisher/src
-
-
-//using SegwayAdaptedType = rclcpp::TypeAdapter<segway_rmp::SegwayStatusStamped, std_msgs::msg::Header>;
-
-std::shared_ptr<rclcpp::Node>  n;// = rclcpp::Node::make_shared("~");
+std::shared_ptr<rclcpp::Node>  n;
 
 // ROS2 Node class
 class SegwayRMPNode : public rclcpp::Node{
   public:
 
-    //rclcpp::Publisher<SegwayAdaptedType>::SharedPtr segway_status_pub;
-    rclcpp::Publisher<segway_interfaces::msg::Stamped>::SharedPtr segway_status_pub;
-    
+    rclcpp::Publisher<segway_interfaces::msg::Stamped>::SharedPtr segway_status_pub;    
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;    
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;    
     
     segwayrmp::SegwayRMP * segway_rmp = NULL;
     segwayrmp::InterfaceType interface_type;
     segwayrmp::SegwayRMPType segway_rmp_type;
-    //segway_rmp::SegwayStatusStamped sss_msg;
 
     segway_interfaces::msg::Stamped sss_msg;
-    //ros2_segway_rmp::msg::SegwayStatusStamped sss_msg;
+
     rclcpp::Time odometry_reset_start_time;
     rclcpp::Time last_time;
+
     rclcpp::TimerBase::SharedPtr keep_alive_timer;
     rclcpp::TimerBase::SharedPtr motor_timeout_timer;
+
     std::string serial_port;
     std::string frame_id;
     std::string odom_frame_id;
+
     geometry_msgs::msg::TransformStamped odom_trans;
+
     nav_msgs::msg::Odometry odom_msg;
+
     std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
+
     boost::mutex m_mutex;
+
     double initial_integrated_forward_position;
     double initial_integrated_left_wheel_position;
     double initial_integrated_right_wheel_position;
@@ -130,11 +89,13 @@ class SegwayRMPNode : public rclcpp::Node{
     double angular_pos_accel_limit; 
     double angular_neg_accel_limit;
     double segway_motor_timeout;
+
     float last_forward_displacement;
     float last_yaw_displacement;
     float odometry_w;
     float odometry_x;
     float odometry_y;
+
     bool invert_x;
     bool invert_z;
     bool connected;
@@ -346,16 +307,6 @@ class SegwayRMPNode : public rclcpp::Node{
     /*--------------------------------------*/    
 
     /****************************************/
-    
-    //void segwayStatusPubCallback(const segway_rmp::SegwayStatusStamped msg) {
-    //void segwayStatusPubCallback(const segway_interfaces::msg::Stamped msg) {
-
-    //  this->segway_status_pub->publish(msg);
-
-    //}
-    /*--------------------------------------*/    
-
-    /****************************************/
     void setupROSComms() {
 
       //this->segway_status_pub = n->create_publisher<SegwayAdaptedType>("segway_status", 1000);
@@ -398,6 +349,7 @@ class SegwayRMPNode : public rclcpp::Node{
     }
     /*--------------------------------------*/  
 
+    /****************************************/
     void motor_timeoutCallback(){
 
       boost::mutex::scoped_lock lock(m_mutex);
@@ -406,10 +358,10 @@ class SegwayRMPNode : public rclcpp::Node{
       this->target_angular_vel = 0.0;
 
     }
+    /*--------------------------------------*/  
 
     /****************************************/
     void handleStatus(segwayrmp::SegwayStatus::Ptr &ss_ptr) {
-    //void handleStatus(segway_interfaces::msg::Stamped::Ptr &ss_ptr) {
 
       if (!this->connected)
           return;
@@ -417,7 +369,6 @@ class SegwayRMPNode : public rclcpp::Node{
       rclcpp::Time current_time = rclcpp::Clock(RCL_ROS_TIME).now();
       this->sss_msg.header.stamp = current_time;
 
-      //segway_interfaces::msg::Stamped &ss = *(ss_ptr);
       segwayrmp::SegwayStatus &ss = *(ss_ptr);
 
       if (this->reset_odometry) {
@@ -498,8 +449,7 @@ class SegwayRMPNode : public rclcpp::Node{
       this->last_yaw_displacement = yaw_displacement;
       this->last_time = current_time;
 
-      // Create a Quaternion from the yaw displacement
-      //geometry_msgs::msg::Quaternion quat = tf::createQuaternionMsgFromYaw(yaw_displacement);
+      // Create a Quaternion from the yaw displacement      
       geometry_msgs::msg::Quaternion quat = this->createQuaternionMsgFromYaw(yaw_displacement);
 
       // Publish the Transform odom->base_link
@@ -534,23 +484,6 @@ class SegwayRMPNode : public rclcpp::Node{
         
       this->odom_pub->publish(this->odom_msg);
     }
-    /*--------------------------------------*/
-
-    /****************************************/
-    //struct TimerEvent
-    //{
-    //    rclcpp::Time last_expected;                     
-    //    rclcpp::Time last_real;                         
-  
-    //    rclcpp::Time current_expected;                  
-    //    rclcpp::Time current_real;                      
-  
-        //struct
-        //{
-        //    rclcpp::WallDuration last_duration;           
-        //} profile;
-    //};
-    //typedef boost::function<void(const TimerEvent&)> TimerCallback;
     /*--------------------------------------*/
 
     /****************************************/
