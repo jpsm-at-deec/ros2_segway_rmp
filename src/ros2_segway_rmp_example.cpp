@@ -40,6 +40,7 @@ class SegwayRMPNode : public rclcpp::Node{
   rclcpp::Publisher<segway_interfaces::msg::Stamped>::SharedPtr segway_status_pub;    
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_velSubscriber;    
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;  
+
   bool optionaldebug = true;
 
   segwayrmp::SegwayRMP * segway_rmp = NULL;
@@ -128,7 +129,11 @@ class SegwayRMPNode : public rclcpp::Node{
       this->odom_trans.header.frame_id = this->odom_frame_id;
       this->odom_trans.child_frame_id = this->frame_id;
       this->odom_msg.header.frame_id = this->odom_frame_id;
-      this->odom_msg.child_frame_id = this->frame_id;      
+      this->odom_msg.child_frame_id = this->frame_id;   
+      this->linear_pos_accel_limit /= 20;
+      this->linear_neg_accel_limit /= 20;
+      this->angular_pos_accel_limit /= 20;
+      this->angular_neg_accel_limit /= 20;   
       n = rclcpp::Node::make_shared("ros2_segway_rmp_node");
       this->setupROSComms();
       if (this->optionaldebug) { 
@@ -177,19 +182,42 @@ class SegwayRMPNode : public rclcpp::Node{
       this->target_angular_vel = z * radians_to_degrees; // Convert to degrees
       this->motor_timeout_timer = n->create_wall_timer(500ms, std::bind(&SegwayRMPNode::motor_timeoutCallback, this));
       if (this->optionaldebug) {
-        std::cout << "[wally] cmd_velCallback done call\n";  
+        std::cout << "[wally] cmd_velCallback call done\n";  
       };
     }
     void motor_timeoutCallback(){
-      boost::mutex::scoped_lock lock(m_mutex);
       if (this->optionaldebug) {
-        std::cout << "[wally] motor_timeoutCallback done call\n";  
+        std::cout << "[wally] motor_timeoutCallback call\n";  
       };
+      boost::mutex::scoped_lock lock(m_mutex);      
       this->target_linear_vel = 0.0;
       this->target_angular_vel = 0.0;
       if (this->optionaldebug) {
-        std::cout << "[wally] motor_timeoutCallback done call\n";  
+        std::cout << "[wally] motor_timeoutCallback call done\n";  
       };
+    }
+    void setupSegwayRMP() {
+      if (this->optionaldebug) {
+        std::cout << "[wally] setupSegwayRMP call\n";  
+      };
+      std::stringstream ss;
+      ss << "Connecting to Segway RMP via ";      
+      this->interface_type = segwayrmp::InterfaceType::serial;
+      this->segway_rmp_type = segwayrmp::SegwayRMPType::rmp200;
+      this->serial_port = "ttyUSB0";
+      this->segway_rmp = new segwayrmp::SegwayRMP(this->interface_type, this->segway_rmp_type);      
+      ss << "serial on serial port: " << this->serial_port;
+      this->segway_rmp->configureSerial(this->serial_port);
+      RCLCPP_INFO(rclcpp::get_logger("rclcpp_info"), "%s", ss.str().c_str());
+      segwayrmp_node_instance = this;
+      this->segway_rmp->setStatusCallback(handleStatusWrapper);
+      this->segway_rmp->setLogMsgCallback("rclcpp_debug", handleDebugMessages);
+      this->segway_rmp->setLogMsgCallback("rclcpp_info", handleInfoMessages);
+      this->segway_rmp->setLogMsgCallback("rclcpp_error", handleErrorMessages);      
+      if (this->optionaldebug) {
+        std::cout << "[wally] setupSegwayRMP call\n";  
+      };
+
     }    
 };
 
