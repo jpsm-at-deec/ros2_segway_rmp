@@ -153,6 +153,7 @@ class SegwayRMPNode : public rclcpp::Node{
       /*--*/
       this->setupROSComms();
       this->setupSegwayRMP();
+      this->run();
       /*--*/
       if (this->optionaldebug) { 
         std::cout << "[wally] SegwayRMPNode class init done\n";  
