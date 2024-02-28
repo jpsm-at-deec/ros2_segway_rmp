@@ -641,8 +641,9 @@ void handleStatusWrapper(segwayrmp::SegwayStatus::Ptr ss) {
 
 int main(int argc, char * argv[])
 {
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<SegwayRMPNode>());
-  rclcpp::shutdown();
+  std::cout << "wally\n";
+  //rclcpp::init(argc, argv);
+  //rclcpp::spin(std::make_shared<SegwayRMPNode>());
+  //rclcpp::shutdown();
   return 0;
 }
